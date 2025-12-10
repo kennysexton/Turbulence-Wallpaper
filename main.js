@@ -207,7 +207,7 @@ app.whenReady().then(async () => { // Made this async to await loadSettings
   });
 
   // Create system tray icon
-  const iconPath = path.join(__dirname, 'icon.svg');
+  const iconPath = path.join(__dirname, 'icon.png');
   appTray = new Tray(iconPath);
 
   const contextMenu = Menu.buildFromTemplate([
