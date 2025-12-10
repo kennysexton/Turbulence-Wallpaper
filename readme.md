@@ -76,10 +76,8 @@ Electron apps **can** be distributed through the Windows Store when packaged as 
 
 The Windows Store will then handle **installations**, **updates**, and **version management**.
 
----
 
-## 🔐 Privacy
-
-- Unsplash API keys are stored locally only  
-- No data is uploaded or shared externally  
-- Network traffic is limited to Unsplash image requests  
+### **TODO**
+- Photo Attribution
+- Thumbnail preview in application
+- 

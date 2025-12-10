@@ -56,7 +56,7 @@ async function fetchUnsplashImage(apiKey, searchTerms) {
         if (res.statusCode === 200) {
           try {
             const imageData = JSON.parse(data);
-            resolve(imageData.urls.full); // Get the full image URL
+            resolve(imageData); // Resolve with the full image data object
           } catch (e) {
             reject(new Error('Failed to parse Unsplash API response: ' + e.message));
           }
@@ -98,8 +98,8 @@ async function setWallpaper(imagePath) {
     const psPath = path.join(process.env.SystemRoot, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
     const rundll32Path = path.join(process.env.SystemRoot, 'System32', 'rundll32.exe');
 
-    // Use the call operator (&) in PowerShell to execute the command with the full path
-    const command = `"${psPath}" -Command "& {Set-ItemProperty -Path 'HKCU:/Control Panel/Desktop' -Name Wallpaper -Value '${imagePath}'; & '${rundll32Path}' user32.dll,UpdatePerUserSystemParameters}"`;
+    // Use forward slashes in the registry path to avoid escaping issues
+    const command = `"${psPath}" -Command "& {Set-ItemProperty -Path 'HKCU:/Control Panel/Desktop' -Name Wallpaper -Value '${imagePath}'; Start-Sleep -Seconds 1; & '${rundll32Path}' user32.dll,UpdatePerUserSystemParameters}"`;
     
     exec(command, (error, stdout, stderr) => {
       if (error) {
@@ -123,12 +123,14 @@ async function updateWallpaper(apiKey, searchTerms) {
     return;
   }
   try {
-    const imageUrl = await fetchUnsplashImage(apiKey, searchTerms);
-    console.log('Fetched Unsplash image URL:', imageUrl);
+    const imageData = await fetchUnsplashImage(apiKey, searchTerms);
+    console.log(`Fetched Unsplash image (ID: ${imageData.id})`);
 
     const tempDir = app.getPath('temp');
-    const imagePath = path.join(tempDir, 'unsplash_wallpaper.jpg');
-    await downloadImage(imageUrl, imagePath);
+    // Use the image ID for a unique filename to prevent caching issues
+    const imagePath = path.join(tempDir, `unsplash_wallpaper_${imageData.id}.jpg`);
+    
+    await downloadImage(imageData.urls.full, imagePath);
     console.log('Image downloaded to:', imagePath);
 
     await setWallpaper(imagePath);
