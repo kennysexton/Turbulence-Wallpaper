@@ -180,7 +180,7 @@ function createWindow (initialSettings = {}) {
     }
   });
 
-  mainWindow.loadFile('index.html');
+  mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
 
   // Send initial settings to the renderer process once it's ready
   mainWindow.webContents.on('did-finish-load', () => {
@@ -207,7 +207,7 @@ app.whenReady().then(async () => { // Made this async to await loadSettings
   });
 
   // Create system tray icon
-  const iconPath = path.join(__dirname, 'icon.png');
+  const iconPath = path.join(app.getAppPath(), 'build/icon.png');
   appTray = new Tray(iconPath);
 
   const contextMenu = Menu.buildFromTemplate([
