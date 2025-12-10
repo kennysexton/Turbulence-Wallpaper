@@ -99,7 +99,7 @@ async function setWallpaper(imagePath) {
     const rundll32Path = path.join(process.env.SystemRoot, 'System32', 'rundll32.exe');
 
     // Use the call operator (&) in PowerShell to execute the command with the full path
-    const command = `"${psPath}" -Command "& {{Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name Wallpaper -Value '${imagePath}'; & '${rundll32Path}' user32.dll,UpdatePerUserSystemParameters}}"`;
+    const command = `"${psPath}" -Command "& {Set-ItemProperty -Path 'HKCU:/Control Panel/Desktop' -Name Wallpaper -Value '${imagePath}'; & '${rundll32Path}' user32.dll,UpdatePerUserSystemParameters}"`;
     
     exec(command, (error, stdout, stderr) => {
       if (error) {
@@ -132,7 +132,6 @@ async function updateWallpaper(apiKey, searchTerms) {
     console.log('Image downloaded to:', imagePath);
 
     await setWallpaper(imagePath);
-    console.log('Wallpaper update initiated.');
   } catch (error) {
     console.error('Error during scheduled wallpaper update:', error.message);
   }
@@ -152,6 +151,9 @@ function startWallpaperScheduler(frequency, apiKey, searchTerms) {
 
   let intervalMs = 0;
   switch (frequency) {
+    case '2-minutes':
+      intervalMs = 2 * 60 * 1000; // 2 minutes
+      break;
     case 'hourly':
       intervalMs = 60 * 60 * 1000; // 1 hour
       break;
@@ -251,4 +253,12 @@ ipcMain.handle('save-settings', async (event, settings) => {
   // Trigger an immediate update and then start/update the scheduler
   await updateWallpaper(apiKey, searchTerms);
   startWallpaperScheduler(updateFrequency, apiKey, searchTerms);
+});
+
+// Listener for the "Next Image" button
+ipcMain.handle('next-wallpaper', async (event, settings) => {
+  console.log('Next wallpaper requested with settings:', settings);
+  const { apiKey, searchTerms } = settings;
+
+  await updateWallpaper(apiKey, searchTerms);
 });

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en-US">
 <head>
     <meta charset="UTF-8">
     <title>Unsplash Wallpaper</title>
@@ -21,6 +21,7 @@
     <div>
         <label for="update-frequency">Update Frequency:</label>
         <select id="update-frequency" name="update-frequency">
+            <option value="2-minutes">Every 2 Minutes (Debug)</option>
             <option value="hourly">Hourly</option>
             <option value="daily" selected>Daily</option>
             <option value="manual">Manual</option>
@@ -28,6 +29,7 @@
     </div>
 
     <button id="save-settings">Save Settings</button>
+    <button id="next-wallpaper">Next Image</button>
 
     <script src="./renderer.js"></script>
 </body>
