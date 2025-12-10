@@ -1,0 +1,19 @@
+{
+  "name": "unsplash-windows-wallpaper",
+  "version": "1.0.0",
+  "description": "A lightweight Electron-based Windows application that automatically updates the desktop wallpaper using images from the Unsplash API.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": [
+    "Electron",
+    "Unsplash",
+    "Wallpaper"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^39.2.6"
+  }
+}

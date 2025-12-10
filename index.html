@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Unsplash Wallpaper</title>
+</head>
+<body>
+    <h1>Unsplash Wallpaper Settings</h1>
+    <p>Welcome to the Unsplash Wallpaper app. Please configure your settings below.</p>
+    
+    <div>
+        <label for="api-key">Unsplash API Key:</label>
+        <input type="text" id="api-key" name="api-key" size="50">
+    </div>
+
+    <div>
+        <label for="search-terms">Search Terms:</label>
+        <input type="text" id="search-terms" name="search-terms" size="50">
+    </div>
+
+    <div>
+        <label for="update-frequency">Update Frequency:</label>
+        <select id="update-frequency" name="update-frequency">
+            <option value="hourly">Hourly</option>
+            <option value="daily" selected>Daily</option>
+            <option value="manual">Manual</option>
+        </select>
+    </div>
+
+    <button id="save-settings">Save Settings</button>
+
+    <script src="./renderer.js"></script>
+</body>
+</html>
