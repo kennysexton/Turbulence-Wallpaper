@@ -33,7 +33,7 @@ function SettingsPage({
           name="api-key" 
           value={apiKey} 
           onChange={(e) => setApiKey(e.target.value)}
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          className="shadow-sm appearance-none border rounded-sm w-full py-2 px-3 text-gray-700 leading-tight focus:outline-hidden focus:shadow-outline"
           placeholder="Your Unsplash Access Key"
         />
       </div>
@@ -46,7 +46,7 @@ function SettingsPage({
           name="search-terms" 
           value={searchTerms} 
           onChange={(e) => setSearchTerms(e.target.value)}
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          className="shadow-sm appearance-none border rounded-sm w-full py-2 px-3 text-gray-700 leading-tight focus:outline-hidden focus:shadow-outline"
           placeholder="e.g., nature, city, abstract"
         />
       </div>
@@ -58,7 +58,7 @@ function SettingsPage({
           name="update-frequency" 
           value={updateFrequency} 
           onChange={(e) => setUpdateFrequency(e.target.value)}
-          className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          className="shadow-sm border rounded-sm w-full py-2 px-3 text-gray-700 leading-tight focus:outline-hidden focus:shadow-outline"
         >
           {Object.entries(UpdateFrequency).map(([key, value]) => (
             <option key={key} value={value}>{key.charAt(0) + key.slice(1).toLowerCase()}</option>
@@ -69,7 +69,7 @@ function SettingsPage({
       <div className="flex items-center justify-between mt-6">
         <button 
           onClick={handleSaveSettings}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-sm focus:outline-hidden focus:shadow-outline"
         >
           Save Settings
         </button>

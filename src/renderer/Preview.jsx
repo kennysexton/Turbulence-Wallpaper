@@ -50,7 +50,7 @@ function Preview({ apiKey, searchTerms, currentPhoto }) {
 
       <button 
         onClick={handleNextWallpaper}
-        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline transition duration-150 ease-in-out"
+        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-full focus:outline-hidden focus:shadow-outline transition duration-150 ease-in-out"
       >
         Next Image
       </button>
