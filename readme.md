@@ -81,3 +81,5 @@ The Windows Store will then handle **installations**, **updates**, and **version
 - Photo Attribution
 - Thumbnail preview in application
 - garbage collection on local folder (move temp images to folder)
+- limit the number of next image clicks
+- Pull from a users own saved collection (needs instrucution in readme)

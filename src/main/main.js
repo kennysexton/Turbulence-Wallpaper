@@ -139,6 +139,8 @@ async function updateWallpaper(apiKey, searchTerms) {
   }
 }
 
+const { UpdateFrequency } = require('../shared/enums.js');
+
 // Function to stop the existing scheduler
 function stopWallpaperScheduler() {
   if (wallpaperUpdateInterval) {
@@ -153,18 +155,18 @@ function startWallpaperScheduler(frequency, apiKey, searchTerms) {
 
   let intervalMs = 0;
   switch (frequency) {
-    case '2-minutes':
+    case UpdateFrequency.DEBUG:
       intervalMs = 2 * 60 * 1000; // 2 minutes
       break;
-    case 'hourly':
+    case UpdateFrequency.HOURLY:
       intervalMs = 60 * 60 * 1000; // 1 hour
       break;
-    case 'daily':
+    case UpdateFrequency.DAILY:
       intervalMs = 24 * 60 * 60 * 1000; // 24 hours
       break;
-    case 'manual':
+    case UpdateFrequency.NONE:
     default:
-      console.log('Manual update frequency selected. Scheduler not started.');
+      console.log(`${frequency} update frequency selected. Scheduler not started.`);
       return;
   }
 
@@ -193,7 +195,7 @@ function createWindow (initialSettings = {}) {
 
   // Handle window close event to hide to tray instead of quitting
   mainWindow.on('close', (event) => {
-    if (!app.isQuitting) { // Only hide if not explicitly quitting
+    if (!(app).isQuitting) { // Only hide if not explicitly quitting
       event.preventDefault();
       mainWindow.hide();
     }
@@ -217,7 +219,7 @@ app.whenReady().then(async () => { // Made this async to await loadSettings
   const contextMenu = Menu.buildFromTemplate([
     { label: 'Show App', click: () => mainWindow.show() },
     { label: 'Quit', click: () => {
-        app.isQuitting = true; // Set flag to allow app to quit
+        (app).isQuitting = true; // Set flag to allow app to quit
         app.quit();
     }}
   ]);
@@ -230,7 +232,7 @@ app.whenReady().then(async () => { // Made this async to await loadSettings
     // Initial update on startup
     await updateWallpaper(loadedSettings.apiKey, loadedSettings.searchTerms);
     // Start scheduler if frequency is set
-    startWallpaperScheduler(loadedSettings.updateFrequency, loadedSettings.apiKey, loadedSettings.searchTerms);
+    startWallpaperScheduler(loadedSettings.updateFrequency || UpdateFrequency.DAILY, loadedSettings.apiKey, loadedSettings.searchTerms);
   }
 });
 
@@ -254,13 +256,18 @@ ipcMain.handle('save-settings', async (event, settings) => {
 
   // Trigger an immediate update and then start/update the scheduler
   await updateWallpaper(apiKey, searchTerms);
-  startWallpaperScheduler(updateFrequency, apiKey, searchTerms);
+  startWallpaperScheduler(updateFrequency || UpdateFrequency.DAILY, apiKey, searchTerms);
 });
 
 // Listener for the "Next Image" button
 ipcMain.handle('next-wallpaper', async (event, settings) => {
   console.log('Next wallpaper requested with settings:', settings);
   const { apiKey, searchTerms } = settings;
+
+  if (!apiKey) {
+    console.error('API Key is required to fetch next Unsplash image.');
+    return;
+  }
 
   await updateWallpaper(apiKey, searchTerms);
 });

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { UpdateFrequency } from '../shared/enums.js'; // Note the .js extension
 
 function App() {
   const [apiKey, setApiKey] = useState('');
-  const [searchTerms, setSearchTerms] = useState('');
-  const [updateFrequency, setUpdateFrequency] = useState('daily');
+  const [searchTerms, setSearchTerms] = useState('nature');
+  const [updateFrequency, setUpdateFrequency] = useState(UpdateFrequency.DAILY);
 
   useEffect(() => {
     // Listen for initial settings from the main process
@@ -84,10 +85,9 @@ function App() {
           onChange={(e) => setUpdateFrequency(e.target.value)}
           className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
         >
-          <option value="2-minutes">Every 2 Minutes (Debug)</option>
-          <option value="hourly">Hourly</option>
-          <option value="daily">Daily</option>
-          <option value="manual">Manual</option>
+          {Object.entries(UpdateFrequency).map(([key, value]) => (
+            <option key={key} value={value}>{key.charAt(0) + key.slice(1).toLowerCase()}</option>
+          ))}
         </select>
       </div>
 
