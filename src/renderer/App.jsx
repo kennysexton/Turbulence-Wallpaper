@@ -36,30 +36,37 @@ function App() {
   }, []);
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center bg-gray-100">
-      {!showSettings && (
+    <div className="relative min-h-screen flex flex-col bg-gray-100">
+      {/* Main content - Preview */}
+      <div className="flex-grow flex items-center justify-center">
+        <Preview apiKey={apiKey} searchTerms={searchTerms} />
+      </div>
+
+      {/* Button to open settings, always visible */}
+      <div className="absolute top-4 right-4">
         <button 
           onClick={() => setShowSettings(true)}
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
         >
           Open Settings
         </button>
-      )}
+      </div>
 
+      {/* Settings Modal */}
       {showSettings && (
-        <SettingsPage 
-          apiKey={apiKey}
-          setApiKey={setApiKey}
-          searchTerms={searchTerms}
-          setSearchTerms={setSearchTerms}
-          updateFrequency={updateFrequency}
-          setUpdateFrequency={setUpdateFrequency}
-          onSave={handleSaveSettings}
-          onClose={() => setShowSettings(false)}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <SettingsPage 
+            apiKey={apiKey}
+            setApiKey={setApiKey}
+            searchTerms={searchTerms}
+            setSearchTerms={setSearchTerms}
+            updateFrequency={updateFrequency}
+            setUpdateFrequency={setUpdateFrequency}
+            onSave={handleSaveSettings}
+            onClose={() => setShowSettings(false)}
+          />
+        </div>
       )}
-
-      <Preview apiKey={apiKey} searchTerms={searchTerms} />
     </div>
   );
 }
