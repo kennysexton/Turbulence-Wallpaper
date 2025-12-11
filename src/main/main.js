@@ -5,9 +5,27 @@ const fs = require('fs');
 const { exec } = require('child_process');
 
 const settingsFilePath = path.join(app.getPath('userData'), 'settings.json');
+const currentPhotoFilePath = path.join(app.getPath('userData'), 'current-photo.json');
+
 let mainWindow; // Keep a global reference to the window object
 let appTray; // Keep a global reference to the tray icon
 let wallpaperUpdateInterval; // To hold our interval ID for scheduling
+
+/**
+ * @typedef {object} UserSettings
+ * @property {string} [apiKey]
+ * @property {string} [searchTerms]
+ * @property {string} [updateFrequency]
+ */
+
+/**
+ * @typedef {object} CurrentPhoto
+ * @property {string} id
+ * @property {string} fullUrl
+ * @property {string} downloadLink
+ * @property {string} [locationName]
+ * @property {string} [userName]
+ */
 
 // Function to save settings to a file
 async function saveSettingsToFile(settings) {
@@ -30,6 +48,29 @@ function loadSettingsFromFile() {
     console.error('Failed to load settings:', error.message);
   }
   return {}; // Return empty object if no settings or error
+}
+
+// Function to save current photo data to a file
+async function saveCurrentPhotoToFile(photo) {
+  try {
+    fs.writeFileSync(currentPhotoFilePath, JSON.stringify(photo, null, 2));
+    console.log('Current photo data saved to:', currentPhotoFilePath);
+  } catch (error) {
+    console.error('Failed to save current photo data:', error.message);
+  }
+}
+
+// Function to load current photo data from a file
+function loadCurrentPhotoFromFile() {
+  try {
+    if (fs.existsSync(currentPhotoFilePath)) {
+      const photoData = fs.readFileSync(currentPhotoFilePath, 'utf8');
+      return JSON.parse(photoData);
+    }
+  } catch (error) {
+    console.error('Failed to load current photo data:', error.message);
+  }
+  return null; // Return null if no photo data or error
 }
 
 // Function to fetch a random image from Unsplash
@@ -62,10 +103,11 @@ async function fetchUnsplashImage(apiKey, searchTerms) {
           }
         } else {
           reject(new Error(`Unsplash API error: ${res.statusCode} - ${data}`));
+          }
         }
+      ).on('error', (err) => {
+        reject(new Error('Failed to connect to Unsplash API: ' + err.message));
       });
-    }).on('error', (err) => {
-      reject(new Error('Failed to connect to Unsplash API: ' + err.message));
     });
   });
 }
@@ -120,6 +162,10 @@ async function setWallpaper(imagePath) {
 async function updateWallpaper(apiKey, searchTerms) {
   if (!apiKey) {
     console.warn('API Key is missing for wallpaper update. Skipping.');
+    // Send a null photo update to renderer to clear previous info if any
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('load-current-photo', null);
+    }
     return;
   }
   try {
@@ -134,8 +180,25 @@ async function updateWallpaper(apiKey, searchTerms) {
     console.log('Image downloaded to:', imagePath);
 
     await setWallpaper(imagePath);
+
+    /** @type {CurrentPhoto} */
+    const currentPhoto = {
+      id: imageData.id,
+      fullUrl: imageData.urls.full,
+      downloadLink: imageData.links.download,
+      locationName: imageData.location?.name,
+      userName: imageData.user?.name,
+    };
+    await saveCurrentPhotoToFile(currentPhoto);
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('load-current-photo', currentPhoto);
+    }
+
   } catch (error) {
     console.error('Error during scheduled wallpaper update:', error.message);
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('load-current-photo', null); // Send null on error
+    }
   }
 }
 
@@ -188,9 +251,13 @@ function createWindow (initialSettings = {}) {
 
   mainWindow.loadFile(path.join(__dirname, '../../dist/index.html'));
 
-  // Send initial settings to the renderer process once it's ready
+  // Send initial settings and current photo to the renderer process once it's ready
   mainWindow.webContents.on('did-finish-load', () => {
     mainWindow.webContents.send('load-settings', initialSettings);
+    const loadedPhoto = loadCurrentPhotoFromFile();
+    if (loadedPhoto) {
+      mainWindow.webContents.send('load-current-photo', loadedPhoto);
+    }
   });
 
   // Handle window close event to hide to tray instead of quitting

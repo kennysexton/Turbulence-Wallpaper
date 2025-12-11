@@ -1,6 +1,6 @@
 import React from 'react';
 
-function Preview({ apiKey, searchTerms }) {
+function Preview({ apiKey, searchTerms, currentPhoto }) {
   const handleNextWallpaper = () => {
     if (window.api && window.api.nextWallpaper) {
       if (!apiKey) {
@@ -15,12 +15,28 @@ function Preview({ apiKey, searchTerms }) {
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md max-w-sm mx-auto mt-4 text-center">
-      <h2 className="text-xl font-semibold mb-3">Wallpaper Preview</h2>
-      <p className="text-gray-600 mb-4">Click below to change the wallpaper immediately.</p>
+    <div className="bg-white p-6 rounded-lg shadow-md max-w-md mx-auto text-center border border-gray-200">
+      <h2 className="text-2xl font-semibold mb-4 text-gray-800">Current Wallpaper</h2>
+      
+      {currentPhoto ? (
+        <div className="text-left mb-4 space-y-2">
+          <p className="text-gray-700"><strong>ID:</strong> {currentPhoto.id}</p>
+          <p className="text-gray-700"><strong>Photographer:</strong> {currentPhoto.userName || 'N/A'}</p>
+          <p className="text-gray-700"><strong>Location:</strong> {currentPhoto.locationName || 'N/A'}</p>
+          <p className="text-gray-700">
+            <strong>Download:</strong>{' '}
+            <a href={currentPhoto.downloadLink} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+              Link
+            </a>
+          </p>
+        </div>
+      ) : (
+        <p className="text-gray-500 mb-4">No wallpaper information available. Please set your API key and update settings.</p>
+      )}
+
       <button 
         onClick={handleNextWallpaper}
-        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline transition duration-150 ease-in-out"
       >
         Next Image
       </button>
@@ -29,3 +45,4 @@ function Preview({ apiKey, searchTerms }) {
 }
 
 export default Preview;
+

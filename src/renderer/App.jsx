@@ -8,17 +8,24 @@ function App() {
   const [apiKey, setApiKey] = useState('');
   const [searchTerms, setSearchTerms] = useState('nature');
   const [updateFrequency, setUpdateFrequency] = useState(UpdateFrequency.DAILY);
+  const [currentPhoto, setCurrentPhoto] = useState(null); // New state for current photo data
 
-  // Load initial settings from main process
+  // Load initial settings and current photo from main process
   useEffect(() => {
     if (window.api && window.api.on) {
-      const unsubscribe = window.api.on('load-settings', (settings) => {
+      const unsubscribeSettings = window.api.on('load-settings', (settings) => {
         setApiKey(settings.apiKey || '');
         setSearchTerms(settings.searchTerms || 'nature');
         setUpdateFrequency(settings.updateFrequency || UpdateFrequency.DAILY);
       });
-      // Cleanup listener on component unmount
-      return () => unsubscribe();
+      const unsubscribePhoto = window.api.on('load-current-photo', (photo) => {
+        setCurrentPhoto(photo);
+      });
+      // Cleanup listeners on component unmount
+      return () => {
+        unsubscribeSettings();
+        unsubscribePhoto();
+      };
     }
   }, []);
 
@@ -39,7 +46,7 @@ function App() {
     <div className="relative min-h-screen flex flex-col bg-gray-100">
       {/* Main content - Preview */}
       <div className="flex-grow flex items-center justify-center">
-        <Preview apiKey={apiKey} searchTerms={searchTerms} />
+        <Preview apiKey={apiKey} searchTerms={searchTerms} currentPhoto={currentPhoto} />
       </div>
 
       {/* Button to open settings, always visible */}
