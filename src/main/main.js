@@ -184,7 +184,7 @@ function createWindow (initialSettings = {}) {
     }
   });
 
-  mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+  mainWindow.loadFile(path.join(__dirname, '../../dist/index.html'));
 
   // Send initial settings to the renderer process once it's ready
   mainWindow.webContents.on('did-finish-load', () => {

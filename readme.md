@@ -80,4 +80,4 @@ The Windows Store will then handle **installations**, **updates**, and **version
 ### **TODO**
 - Photo Attribution
 - Thumbnail preview in application
-- 
+- garbage collection on local folder (move temp images to folder)
