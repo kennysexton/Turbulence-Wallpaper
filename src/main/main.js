@@ -25,6 +25,7 @@ let wallpaperUpdateInterval; // To hold our interval ID for scheduling
  * @property {string} downloadLink
  * @property {string} [locationName]
  * @property {string} [userName]
+ * @property {string} [userProfileUrl]
  */
 
 // Function to save settings to a file
@@ -188,6 +189,7 @@ async function updateWallpaper(apiKey, searchTerms) {
       downloadLink: imageData.links.download,
       locationName: imageData.location?.name,
       userName: imageData.user?.name,
+      userProfileUrl: imageData.user?.links?.html,
     };
     await saveCurrentPhotoToFile(currentPhoto);
     if (mainWindow && !mainWindow.isDestroyed()) {
@@ -242,6 +244,7 @@ function createWindow (initialSettings = {}) {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    frame: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true, // Enable context isolation
@@ -251,15 +254,14 @@ function createWindow (initialSettings = {}) {
 
   mainWindow.loadFile(path.join(__dirname, '../../dist/index.html'));
 
-  // Send initial settings and current photo to the renderer process once it's ready
-  mainWindow.webContents.on('did-finish-load', () => {
-    mainWindow.webContents.send('load-settings', initialSettings);
-    const loadedPhoto = loadCurrentPhotoFromFile();
-    if (loadedPhoto) {
-      mainWindow.webContents.send('load-current-photo', loadedPhoto);
-    }
-  });
-
+      // Send initial settings and current photo to the renderer process once it's ready
+    mainWindow.webContents.on('did-finish-load', () => {
+      mainWindow.webContents.send('load-settings', initialSettings);
+      const loadedPhoto = loadCurrentPhotoFromFile();
+      if (loadedPhoto) {
+        mainWindow.webContents.send('load-current-photo', loadedPhoto);
+      }
+    });
   // Handle window close event to hide to tray instead of quitting
   mainWindow.on('close', (event) => {
     if (!(app).isQuitting) { // Only hide if not explicitly quitting
