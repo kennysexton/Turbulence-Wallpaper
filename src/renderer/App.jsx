@@ -3,15 +3,16 @@ import SettingsPage from './SettingsPage.jsx';
 import Preview from './Preview.jsx';
 import {UpdateFrequency} from '../shared/enums.js';
 import IconButton from "./components/IconButton";
-import {ReactComponent as SettingsIcon} from './icons/settings.svg';
-import {ReactComponent as FastForwardIcon} from './icons/fast-forward.svg';
+import {ReactComponent as SettingsIcon} from './icons/settings.svg'; // Import settings icon as a React component
+import {ReactComponent as FastForwardIcon} from './icons/fast-forward.svg'; // Import next icon as a React component
 
 function App() {
 	const [showSettings, setShowSettings] = useState(false);
 	const [apiKey, setApiKey] = useState('');
 	const [searchTerms, setSearchTerms] = useState('nature');
 	const [updateFrequency, setUpdateFrequency] = useState(UpdateFrequency.DAILY);
-	const [currentPhoto, setCurrentPhoto] = useState(null); // New state for current photo data
+	const [currentPhoto, setCurrentPhoto] = useState(null);
+	const [hoveredActionName, setHoveredActionName] = useState(null);
 
 	// Load initial settings and current photo from main process
 	useEffect(() => {
@@ -69,11 +70,15 @@ function App() {
 					icon={SettingsIcon}
 					actionName="Open Settings"
 					onClick={() => setShowSettings(true)}
+					onMouseEnter={() => setHoveredActionName("Open Settings")}
+					onMouseLeave={() => setHoveredActionName(null)}
 				/>
 				<IconButton
 					icon={FastForwardIcon}
 					actionName="Next Image"
 					onClick={handleNextWallpaper}
+					onMouseEnter={() => setHoveredActionName("Next Image")}
+					onMouseLeave={() => setHoveredActionName(null)}
 				/>
 			</div>
 
@@ -90,6 +95,16 @@ function App() {
 							onSave={handleSaveSettings}
 							onClose={() => setShowSettings(false)}
 						/>
+					</div>
+				)
+			}
+
+			{
+				hoveredActionName && (
+					<div className="fixed inset-0 flex items-center justify-center z-100 pointer-events-none">
+             <span className="bg-gray-800 text-white text-sm px-3 py-2 rounded-lg shadow-xl whitespace-nowrap">
+							{hoveredActionName}
+             </span>
 					</div>
 				)
 			}
