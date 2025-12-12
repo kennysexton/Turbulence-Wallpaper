@@ -297,9 +297,7 @@ app.whenReady().then(async () => { // Made this async to await loadSettings
 
   // If API key exists, trigger wallpaper update with loaded settings
   if (loadedSettings.apiKey) {
-    console.log('Applying wallpaper with loaded settings...');
-    // Initial update on startup
-    await updateWallpaper(loadedSettings.apiKey, loadedSettings.searchTerms);
+    console.log('Setting loaded...');
     // Start scheduler if frequency is set
     startWallpaperScheduler(loadedSettings.updateFrequency || UpdateFrequency.DAILY, loadedSettings.apiKey, loadedSettings.searchTerms);
   }
@@ -323,8 +321,6 @@ ipcMain.handle('save-settings', async (event, settings) => {
     return;
   }
 
-  // Trigger an immediate update and then start/update the scheduler
-  await updateWallpaper(apiKey, searchTerms);
   startWallpaperScheduler(updateFrequency || UpdateFrequency.DAILY, apiKey, searchTerms);
 });
 
@@ -338,5 +334,4 @@ ipcMain.handle('next-wallpaper', async (event, settings) => {
     return;
   }
 
-  await updateWallpaper(apiKey, searchTerms);
 });

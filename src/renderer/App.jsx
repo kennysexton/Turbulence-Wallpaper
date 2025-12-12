@@ -3,8 +3,9 @@ import SettingsPage from './SettingsPage.jsx';
 import Preview from './Preview.jsx';
 import {UpdateFrequency} from '../shared/enums.js';
 import IconButton from "./components/IconButton";
-import {ReactComponent as SettingsIcon} from './icons/settings.svg'; // Import settings icon as a React component
-import {ReactComponent as FastForwardIcon} from './icons/fast-forward.svg'; // Import next icon as a React component
+import {ReactComponent as SettingsIcon} from './icons/settings.svg';
+import {ReactComponent as FastForwardIcon} from './icons/fast-forward.svg';
+import {ReactComponent as CheckIcon} from './icons/check.svg';
 
 function App() {
 	const [showSettings, setShowSettings] = useState(false);
@@ -47,19 +48,36 @@ function App() {
 	}, []);
 
 	// Function to trigger next wallpaper, moved from Preview.jsx
-	const handleNextWallpaper = useCallback(() => {
+	const handleNextWallpaper = useCallback(async () => {
 		if (window.api && window.api.nextWallpaper) {
 			if (!apiKey) {
-				alert('Please enter an Unsplash API Key first.');
+				console.warn('Please enter an Unsplash API Key first.');
 				return;
 			}
-			window.api.nextWallpaper({apiKey, searchTerms});
-			alert('Fetching next image...');
+			console.log('Fetching next image for preview...');
+			const newPhoto = await window.api.nextWallpaper({apiKey, searchTerms}); // Await the result
+			if (newPhoto) {
+				setCurrentPhoto(newPhoto); // Update current photo state with new data
+			}
 		} else {
 			console.error('API not available to fetch next wallpaper.');
 		}
 	}, [apiKey, searchTerms]);
 
+	// Function to set wallpaper on OS and save info
+	const handleSetWallpaper = useCallback(async () => {
+		if (!currentPhoto) {
+			alert('No image to set. Please fetch a preview first.');
+			return;
+		}
+		if (window.api && window.api.setWallpaper) {
+			alert('Applying wallpaper to OS and saving information...');
+			await window.api.setWallpaper(currentPhoto);
+			alert('Wallpaper set and info saved!');
+		} else {
+			console.error('API not available to set wallpaper.');
+		}
+	}, [currentPhoto]);
 
 	return (
 		<div className="relative h-full flex flex-col">
@@ -67,17 +85,24 @@ function App() {
 
 			<div className="absolute w-full top-0 p-4 flex justify-between">
 				<IconButton
-					icon={SettingsIcon}
-					actionName="Open Settings"
-					onClick={() => setShowSettings(true)}
-					onMouseEnter={() => setHoveredActionName("Open Settings")}
+					icon={CheckIcon} // New Check button
+					actionName="Set Wallpaper"
+					onClick={handleSetWallpaper}
+					onMouseEnter={() => setHoveredActionName("Set Wallpaper")}
 					onMouseLeave={() => setHoveredActionName(null)}
 				/>
 				<IconButton
-					icon={FastForwardIcon}
-					actionName="Next Image"
+					icon={FastForwardIcon} // Next Image button
+					actionName="Next Image (Preview)"
 					onClick={handleNextWallpaper}
-					onMouseEnter={() => setHoveredActionName("Next Image")}
+					onMouseEnter={() => setHoveredActionName("Next Image (Preview)")}
+					onMouseLeave={() => setHoveredActionName(null)}
+				/>
+				<IconButton
+					icon={SettingsIcon} // Settings button
+					actionName="Open Settings"
+					onClick={() => setShowSettings(true)}
+					onMouseEnter={() => setHoveredActionName("Open Settings")}
 					onMouseLeave={() => setHoveredActionName(null)}
 				/>
 			</div>

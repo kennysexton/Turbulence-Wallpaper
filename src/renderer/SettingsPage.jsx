@@ -71,7 +71,7 @@ function SettingsPage({
           onClick={handleSaveSettings}
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-sm focus:outline-hidden focus:shadow-outline"
         >
-          Save Settings
+          Save Preferences
         </button>
       </div>
     </div>
