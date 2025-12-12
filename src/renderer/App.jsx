@@ -2,6 +2,9 @@ import React, {useState, useEffect, useCallback} from 'react';
 import SettingsPage from './SettingsPage.jsx';
 import Preview from './Preview.jsx';
 import {UpdateFrequency} from '../shared/enums.js';
+import IconButton from "./components/IconButton";
+import {ReactComponent as SettingsIcon} from './icons/settings.svg';
+import {ReactComponent as FastForwardIcon} from './icons/fast-forward.svg';
 
 function App() {
 	const [showSettings, setShowSettings] = useState(false);
@@ -61,37 +64,38 @@ function App() {
 		<div className="relative h-full flex flex-col">
 			<Preview apiKey={apiKey} searchTerms={searchTerms} currentPhoto={currentPhoto}/>
 
-			<div className="absolute w-full top-2 flex justify-between">
-				<button
+			<div className="absolute w-full top-0 p-4 flex justify-between">
+				<IconButton
+					icon={SettingsIcon}
+					actionName="Open Settings"
 					onClick={() => setShowSettings(true)}
-					className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-sm focus:outline-hidden focus:shadow-outline"
-				>
-					Open Settings
-				</button>
-				<button
+				/>
+				<IconButton
+					icon={FastForwardIcon}
+					actionName="Next Image"
 					onClick={handleNextWallpaper}
-					className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-sm focus:outline-hidden focus:shadow-outline transition duration-150 ease-in-out"
-				>
-					Next
-				</button>
+				/>
 			</div>
 
-			{showSettings && (
-				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-					<SettingsPage
-						apiKey={apiKey}
-						setApiKey={setApiKey}
-						searchTerms={searchTerms}
-						setSearchTerms={setSearchTerms}
-						updateFrequency={updateFrequency}
-						setUpdateFrequency={setUpdateFrequency}
-						onSave={handleSaveSettings}
-						onClose={() => setShowSettings(false)}
-					/>
-				</div>
-			)}
+			{
+				showSettings && (
+					<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+						<SettingsPage
+							apiKey={apiKey}
+							setApiKey={setApiKey}
+							searchTerms={searchTerms}
+							setSearchTerms={setSearchTerms}
+							updateFrequency={updateFrequency}
+							setUpdateFrequency={setUpdateFrequency}
+							onSave={handleSaveSettings}
+							onClose={() => setShowSettings(false)}
+						/>
+					</div>
+				)
+			}
 		</div>
-	);
+	)
+		;
 }
 
 export default App;
