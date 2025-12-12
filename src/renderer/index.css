@@ -17,3 +17,8 @@
     border-color: var(--color-gray-200, currentcolor);
   }
 }
+
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+}
