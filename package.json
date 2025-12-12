@@ -6,7 +6,8 @@
   "scripts": {
     "start": "electron .",
     "dev": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "dev-electron": "npm run build && npm start"
   },
   "dependencies": {
     "react": "^18.2.0",

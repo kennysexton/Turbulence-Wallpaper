@@ -3,19 +3,6 @@ import React from 'react';
 function Preview({ apiKey, searchTerms, currentPhoto }) {
   const appName = import.meta.env.VITE_APP_NAME; // Get appName directly from Vite env
 
-  const handleNextWallpaper = () => {
-    if (window.api && window.api.nextWallpaper) {
-      if (!apiKey) {
-        alert('Please enter an Unsplash API Key first.');
-        return;
-      }
-      window.api.nextWallpaper({ apiKey, searchTerms });
-      alert('Fetching next image...');
-    } else {
-      console.error('API not available to fetch next wallpaper.');
-    }
-  };
-
   const unsplashReferralLink = `https://unsplash.com/?utm_source=${appName}&utm_medium=referral`;
 
   return (
@@ -47,13 +34,6 @@ function Preview({ apiKey, searchTerms, currentPhoto }) {
       ) : (
         <p className="text-gray-500 mb-4">No wallpaper information available. Please set your API key and update settings.</p>
       )}
-
-      <button 
-        onClick={handleNextWallpaper}
-        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-full focus:outline-hidden focus:shadow-outline transition duration-150 ease-in-out"
-      >
-        Next Image
-      </button>
     </div>
   );
 }
