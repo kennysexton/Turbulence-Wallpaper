@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Tray, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, Tray, Menu, shell } = require('electron');
 const path = require('path');
 const https = require('https');
 const fs = require('fs');
@@ -241,6 +241,8 @@ async function updateWallpaper(apiKey, searchTerms) {
       locationName: imageData.location?.name,
       userName: imageData.user?.name,
       userProfileUrl: imageData.user?.links?.html,
+      description: imageData.description || imageData.alt_description, // Add description
+      htmlLink: imageData.links.html, // Add HTML link
     };
     await saveCurrentPhotoToFile(currentPhoto);
     if (mainWindow && !mainWindow.isDestroyed()) {
@@ -396,6 +398,8 @@ ipcMain.handle('get-next-image', async (event, settings) => {
       locationName: imageData.location?.name,
       userName: imageData.user?.name,
       userProfileUrl: imageData.user?.links?.html,
+      description: imageData.description || imageData.alt_description, // Add description
+      htmlLink: imageData.links.html, // Add HTML link
     };
   } catch (error) {
     console.error('Error fetching next image data:', error.message);
@@ -427,5 +431,12 @@ ipcMain.handle('set-wallpaper', async (event, photoData) => {
   } catch (error) {
     console.error('Error setting wallpaper and saving data:', error.message);
     // Optionally notify the renderer of the failure
+  }
+});
+
+// Listener to open a URL in the user's default browser
+ipcMain.handle('open-external-link', async (event, url) => {
+  if (url) {
+    await shell.openExternal(url);
   }
 });

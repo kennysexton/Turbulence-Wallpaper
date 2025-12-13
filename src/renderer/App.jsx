@@ -2,10 +2,7 @@ import React, {useState, useEffect, useCallback} from 'react';
 import SettingsPage from './SettingsPage.jsx';
 import Preview from './Preview.jsx';
 import {UpdateFrequency} from '../shared/enums.js';
-import IconButton from "./components/IconButton";
-import {ReactComponent as SettingsIcon} from './icons/settings.svg';
-import {ReactComponent as FastForwardIcon} from './icons/fast-forward.svg';
-import {ReactComponent as CheckIcon} from './icons/check.svg';
+import Options from "./components/Options";
 
 function App() {
 	const [showSettings, setShowSettings] = useState(false);
@@ -85,37 +82,33 @@ function App() {
 		}
 	}, [currentPhoto, previewPhoto]);
 
+	// Placeholder for download functionality
+	const handleDownloadImage = useCallback(() => {
+		const photoToDownload = previewPhoto || currentPhoto;
+		if (!photoToDownload) {
+			alert('No image to download.');
+			return;
+		}
+		console.log('Downloading image:', photoToDownload);
+		// TODO: Implement IPC call to main process to handle download
+		alert('Download functionality not yet implemented.');
+	}, [currentPhoto, previewPhoto]);
+
 	return (
 		<div className="relative h-full flex flex-col">
 			<Preview apiKey={apiKey} searchTerms={searchTerms} currentPhoto={previewPhoto || currentPhoto}/>
 
-			<div className="absolute w-full top-0 p-4 flex justify-between">
-				<IconButton
-					icon={CheckIcon} // New Check button
-					actionName="Set Wallpaper"
-					onClick={handleSetWallpaper}
-					onMouseEnter={() => setHoveredActionName("Set Wallpaper")}
-					onMouseLeave={() => setHoveredActionName(null)}
-				/>
-				<IconButton
-					icon={FastForwardIcon} // Next Image button
-					actionName="Next Image (Preview)"
-					onClick={handleNextImagePreview}
-					onMouseEnter={() => setHoveredActionName("Next Image (Preview)")}
-					onMouseLeave={() => setHoveredActionName(null)}
-				/>
-				<IconButton
-					icon={SettingsIcon} // Settings button
-					actionName="Open Settings"
-					onClick={() => setShowSettings(true)}
-					onMouseEnter={() => setHoveredActionName("Open Settings")}
-					onMouseLeave={() => setHoveredActionName(null)}
-				/>
-			</div>
+			<Options
+				onSetWallpaper={handleSetWallpaper}
+				onNextImage={handleNextImagePreview}
+				onShowSettings={() => setShowSettings(true)}
+				onDownloadImage={handleDownloadImage}
+				onHoverAction={setHoveredActionName}
+			/>
 
 			{
 				showSettings && (
-					<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+					<div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
 						<SettingsPage
 							apiKey={apiKey}
 							setApiKey={setApiKey}
@@ -140,8 +133,7 @@ function App() {
 				)
 			}
 		</div>
-	)
-		;
+	);
 }
 
 export default App;

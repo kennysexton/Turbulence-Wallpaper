@@ -87,3 +87,16 @@ The project's file structure is organized for clarity and maintainability:
 *   `npm start`: Launches the Electron application, loading the `dist/index.html`.
 *   `npm run dev-electron`: A convenience script to run `npm run build && npm start` sequentially.
 *   (For more advanced development, `npm run dev` can be used to run the Vite dev server alongside Electron, requiring changes in `main.js` to load the dev server URL.)
+
+## ⚠️ Common Issues & Solutions
+
+### Wallpaper Not Updating on Windows
+
+*   **Symptom:** The application logs show that the wallpaper was set successfully (PowerShell exits with code 0), but the desktop background does not change.
+*   **Cause:** This is a common issue caused by Windows Explorer's caching mechanism. The less-reliable method of updating the registry and then sending a refresh signal (`rundll32.exe user32.dll,UpdatePerUserSystemParameters`) can fail silently if Explorer decides to ignore the refresh message and continue using its cached version of the wallpaper.
+*   **Solution:** The problem was solved by switching to a more direct and authoritative Win32 API call. The `setWallpaper` function in `src/main/main.js` now uses an embedded C# snippet within the PowerShell script to call the `SystemParametersInfo` function from `user32.dll`. This is the most reliable method for programmatically changing the desktop wallpaper on Windows as it bypasses the caching mechanism and tells the system to update immediately.
+*   **Debugging Journey:** The process to fix this involved several steps:
+    1.  Switching from Node.js's `exec` to `spawn` to get reliable exit codes and error streams from PowerShell.
+    2.  Adding a `try...catch` block within the PowerShell script for robust error handling.
+    3.  Using the full path to `rundll32.exe` to solve `PATH` issues in the `spawn` environment.
+    4.  Finally, replacing the entire registry/refresh logic with the `SystemParametersInfo` API call.
