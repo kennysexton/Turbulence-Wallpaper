@@ -1,11 +1,11 @@
 # 📸 Windows Unsplash Wallpaper App  
-A lightweight Electron-based Windows application that automatically updates the desktop wallpaper using images from the Unsplash API. Users enter their own Unsplash API key, enabling distributed rate limits and simplified privacy.
+A lightweight Electron-based Windows application that automatically updates the desktop wallpaper using images from the Unsplash API.
 
 ---
 
 ## 🌟 Overview
 
-This project uses **Electron**, **Node.js**, and standard **JavaScript** to build a native-feeling Windows desktop app. The app periodically fetches an image from Unsplash (based on the user’s settings) and sets it as the system wallpaper.
+This project uses **Electron**, **Node.js**, and **React** to build a native-feeling Windows desktop app. The app periodically fetches an image from Unsplash (based on the user’s settings) and sets it as the system wallpaper.
 
 The application is packaged as an **MSIX** to allow distribution through the **Microsoft Store**.
 
@@ -75,11 +75,3 @@ Electron apps **can** be distributed through the Windows Store when packaged as 
 5. Microsoft performs automated certification before publishing.  
 
 The Windows Store will then handle **installations**, **updates**, and **version management**.
-
----
-
-## 🔐 Privacy
-
-- Unsplash API keys are stored locally only  
-- No data is uploaded or shared externally  
-- Network traffic is limited to Unsplash image requests  
