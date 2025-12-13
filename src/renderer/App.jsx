@@ -15,6 +15,8 @@ function App() {
 	const [currentPhoto, setCurrentPhoto] = useState(null);
 	const [hoveredActionName, setHoveredActionName] = useState(null);
 
+	const [previewPhoto, setPreviewPhoto] = useState(null);
+
 	// Load initial settings and current photo from main process
 	useEffect(() => {
 		if (window.api && window.api.on) {
@@ -41,47 +43,51 @@ function App() {
 		setUpdateFrequency(newSettings.updateFrequency);
 		if (window.api && window.api.saveSettings) {
 			window.api.saveSettings(newSettings);
-			alert('Settings saved and wallpaper update triggered!');
+			console.log('Settings saved and wallpaper update triggered!');
 		} else {
 			console.error('API not available to save settings.');
 		}
 	}, []);
 
-	// Function to trigger next wallpaper, moved from Preview.jsx
-	const handleNextWallpaper = useCallback(async () => {
-		if (window.api && window.api.nextWallpaper) {
+	// Function to fetch the next image for preview only
+	const handleNextImagePreview = useCallback(async () => {
+		if (window.api && window.api.getNextImage) {
 			if (!apiKey) {
-				console.warn('Please enter an Unsplash API Key first.');
+				alert('Please enter an Unsplash API Key first.');
 				return;
 			}
 			console.log('Fetching next image for preview...');
-			const newPhoto = await window.api.nextWallpaper({apiKey, searchTerms}); // Await the result
+			const newPhoto = await window.api.getNextImage({apiKey, searchTerms});
 			if (newPhoto) {
-				setCurrentPhoto(newPhoto); // Update current photo state with new data
+				setPreviewPhoto(newPhoto); // Store in the new preview state
 			}
 		} else {
-			console.error('API not available to fetch next wallpaper.');
+			console.error('API not available to fetch next image preview.');
 		}
 	}, [apiKey, searchTerms]);
 
 	// Function to set wallpaper on OS and save info
 	const handleSetWallpaper = useCallback(async () => {
-		if (!currentPhoto) {
-			alert('No image to set. Please fetch a preview first.');
+		const photoToSet = previewPhoto || currentPhoto; // Use preview photo if available
+		if (!photoToSet) {
+			alert('No image to set. Please fetch an image first.');
 			return;
 		}
 		if (window.api && window.api.setWallpaper) {
-			alert('Applying wallpaper to OS and saving information...');
-			await window.api.setWallpaper(currentPhoto);
-			alert('Wallpaper set and info saved!');
+			console.log('- Applying wallpaper to OS and saving information...');
+			await window.api.setWallpaper(photoToSet);
+			// After setting, the previewed image becomes the current one
+			setCurrentPhoto(photoToSet);
+			setPreviewPhoto(null); // Clear the preview
+			console.log('- Wallpaper set and info saved!');
 		} else {
 			console.error('API not available to set wallpaper.');
 		}
-	}, [currentPhoto]);
+	}, [currentPhoto, previewPhoto]);
 
 	return (
 		<div className="relative h-full flex flex-col">
-			<Preview apiKey={apiKey} searchTerms={searchTerms} currentPhoto={currentPhoto}/>
+			<Preview apiKey={apiKey} searchTerms={searchTerms} currentPhoto={previewPhoto || currentPhoto}/>
 
 			<div className="absolute w-full top-0 p-4 flex justify-between">
 				<IconButton
@@ -94,7 +100,7 @@ function App() {
 				<IconButton
 					icon={FastForwardIcon} // Next Image button
 					actionName="Next Image (Preview)"
-					onClick={handleNextWallpaper}
+					onClick={handleNextImagePreview}
 					onMouseEnter={() => setHoveredActionName("Next Image (Preview)")}
 					onMouseLeave={() => setHoveredActionName(null)}
 				/>

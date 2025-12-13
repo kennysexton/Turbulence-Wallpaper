@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, Tray, Menu } = require('electron');
 const path = require('path');
 const https = require('https');
 const fs = require('fs');
-const { exec } = require('child_process');
+const { exec, spawn } = require('child_process');
 
 const settingsFilePath = path.join(app.getPath('userData'), 'settings.json');
 const currentPhotoFilePath = path.join(app.getPath('userData'), 'current-photo.json');
@@ -135,26 +135,77 @@ async function downloadImage(imageUrl, filePath) {
 // Function to set wallpaper (Windows-specific using PowerShell)
 async function setWallpaper(imagePath) {
   return new Promise((resolve, reject) => {
-    console.log(`Attempting to set wallpaper to: ${imagePath}`);
+    console.log(`Attempting to set wallpaper directly via Win32 API for path: ${imagePath}`);
     
-    // Construct the full path to powershell.exe and rundll32.exe for robustness
     const psPath = path.join(process.env.SystemRoot, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
-    const rundll32Path = path.join(process.env.SystemRoot, 'System32', 'rundll32.exe');
 
-    // Use forward slashes in the registry path to avoid escaping issues
-    const command = `"${psPath}" -Command "& {Set-ItemProperty -Path 'HKCU:/Control Panel/Desktop' -Name Wallpaper -Value '${imagePath}'; Start-Sleep -Seconds 1; & '${rundll32Path}' user32.dll,UpdatePerUserSystemParameters}"`;
+    // This command uses the more reliable SystemParametersInfo Win32 API call to set the wallpaper.
+    // This method is more direct and less prone to caching issues than the registry + refresh method.
+    const command = `
+      try {
+        $code = @"
+        using System;
+        using System.Runtime.InteropServices;
+        using Microsoft.Win32;
+        public class Wallpaper {
+            [DllImport("user32.dll", CharSet=CharSet.Auto)]
+            public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
+            public const int SPI_SETDESKWALLPAPER = 0x0014;
+            public const int SPIF_UPDATEINIFILE = 0x0001;
+            public const int SPIF_SENDCHANGE = 0x0002;
+        }
+"@
+
+        Add-Type -TypeDefinition $code
+
+        # Set the wallpaper by calling the Win32 API function directly.
+        $result = [Wallpaper]::SystemParametersInfo([Wallpaper]::SPI_SETDESKWALLPAPER, 0, "${imagePath}", ([Wallpaper]::SPIF_UPDATEINIFILE -bor [Wallpaper]::SPIF_SENDCHANGE))
+
+        if ($result -ne 1) {
+            # A non-true result from the API call indicates a failure.
+            throw "SystemParametersInfo API call failed to set wallpaper."
+        }
+        
+        Write-Output "Wallpaper set successfully via SystemParametersInfo."
+        exit 0
+
+      } catch {
+        Write-Error $_.Exception.Message
+        exit 1
+      }
+    `;
     
-    exec(command, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`Error setting wallpaper: ${error.message}`);
-        return reject(error);
+    console.log('Spawning PowerShell process to call Win32 API...');
+    const ps = spawn(psPath, ['-Command', command]);
+
+    let stdout = '';
+    let stderr = '';
+
+    ps.stdout.on('data', (data) => {
+      const output = data.toString();
+      console.log(`PowerShell stdout: ${output.trim()}`);
+      stdout += output;
+    });
+
+    ps.stderr.on('data', (data) => {
+      const errorOutput = data.toString();
+      console.error(`PowerShell stderr: ${errorOutput.trim()}`);
+      stderr += errorOutput;
+    });
+
+    ps.on('close', (code) => {
+      console.log(`PowerShell process exited with code ${code}`);
+      if (code === 0) {
+        console.log('Wallpaper operation completed successfully.');
+        resolve();
+      } else {
+        reject(new Error(`PowerShell script failed with code ${code}. Stderr: ${stderr.trim()}`));
       }
-      if (stderr) {
-        // PowerShell often outputs non-fatal warnings to stderr, so we log them but don't reject.
-        console.warn(`PowerShell stderr: ${stderr}`);
-      }
-      console.log(`Wallpaper set successfully. stdout: ${stdout}`);
-      resolve();
+    });
+
+    ps.on('error', (err) => {
+      console.error('Failed to start PowerShell process.', err);
+      reject(err);
     });
   });
 }
@@ -324,14 +375,57 @@ ipcMain.handle('save-settings', async (event, settings) => {
   startWallpaperScheduler(updateFrequency || UpdateFrequency.DAILY, apiKey, searchTerms);
 });
 
-// Listener for the "Next Image" button
-ipcMain.handle('next-wallpaper', async (event, settings) => {
-  console.log('Next wallpaper requested with settings:', settings);
+// Listener for a request to get the next image data without setting it
+ipcMain.handle('get-next-image', async (event, settings) => {
+  console.log('Get next image data requested with settings:', settings);
   const { apiKey, searchTerms } = settings;
 
   if (!apiKey) {
-    console.error('API Key is required to fetch next Unsplash image.');
+    console.error('API Key is required to fetch the next Unsplash image.');
+    return null; // Return null or an error object
+  }
+
+  try {
+    const imageData = await fetchUnsplashImage(apiKey, searchTerms);
+    // Important: We're NOT saving or setting the wallpaper here.
+    // We are just returning the data to the renderer process.
+    return {
+      id: imageData.id,
+      fullUrl: imageData.urls.full,
+      downloadLink: imageData.links.download,
+      locationName: imageData.location?.name,
+      userName: imageData.user?.name,
+      userProfileUrl: imageData.user?.links?.html,
+    };
+  } catch (error) {
+    console.error('Error fetching next image data:', error.message);
+    return null; // Return null on error
+  }
+});
+
+// Listener to explicitly set a wallpaper and save the data
+ipcMain.handle('set-wallpaper', async (event, photoData) => {
+  if (!photoData || !photoData.fullUrl) {
+    console.error('Invalid photo data provided to set-wallpaper handler.');
     return;
   }
 
+  try {
+    const tempDir = app.getPath('temp');
+    const imagePath = path.join(tempDir, `unsplash_wallpaper_${photoData.id}.jpg`);
+
+    await downloadImage(photoData.fullUrl, imagePath);
+    console.log('Image for wallpaper downloaded to:', imagePath);
+
+    await setWallpaper(imagePath);
+    await saveCurrentPhotoToFile(photoData);
+
+    // Optionally, send the confirmed photo back to the renderer
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('load-current-photo', photoData);
+    }
+  } catch (error) {
+    console.error('Error setting wallpaper and saving data:', error.message);
+    // Optionally notify the renderer of the failure
+  }
 });
