@@ -22,7 +22,6 @@ let wallpaperUpdateInterval; // To hold our interval ID for scheduling
  * @typedef {object} CurrentPhoto
  * @property {string} id
  * @property {string} fullUrl
- * @property {string} downloadLink
  * @property {string} [locationName]
  * @property {string} [userName]
  * @property {string} [userProfileUrl]
@@ -237,7 +236,6 @@ async function updateWallpaper(apiKey, searchTerms) {
     const currentPhoto = {
       id: imageData.id,
       fullUrl: imageData.urls.full,
-      downloadLink: imageData.links.download,
       locationName: imageData.location?.name,
       userName: imageData.user?.name,
       userProfileUrl: imageData.user?.links?.html,
@@ -394,7 +392,6 @@ ipcMain.handle('get-next-image', async (event, settings) => {
     return {
       id: imageData.id,
       fullUrl: imageData.urls.full,
-      downloadLink: imageData.links.download,
       locationName: imageData.location?.name,
       userName: imageData.user?.name,
       userProfileUrl: imageData.user?.links?.html,

@@ -21,12 +21,6 @@ function Options({
           onMouseEnter={() => onHoverAction("Open Settings")}
           onMouseLeave={() => onHoverAction(null)}
         />
-        <IconButton
-          icon={Download}
-          onClick={onDownloadImage}
-          onMouseEnter={() => onHoverAction("Download Image")}
-          onMouseLeave={() => onHoverAction(null)}
-        />
       </div>
       <div className="flex gap-3">
         <IconButton

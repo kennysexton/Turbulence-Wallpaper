@@ -82,18 +82,6 @@ function App() {
 		}
 	}, [currentPhoto, previewPhoto]);
 
-	// Placeholder for download functionality
-	const handleDownloadImage = useCallback(() => {
-		const photoToDownload = previewPhoto || currentPhoto;
-		if (!photoToDownload) {
-			alert('No image to download.');
-			return;
-		}
-		console.log('Downloading image:', photoToDownload);
-		// TODO: Implement IPC call to main process to handle download
-		alert('Download functionality not yet implemented.');
-	}, [currentPhoto, previewPhoto]);
-
 	return (
 		<div className="relative h-full flex flex-col">
 			<Preview apiKey={apiKey} searchTerms={searchTerms} currentPhoto={previewPhoto || currentPhoto}/>
@@ -102,7 +90,6 @@ function App() {
 				onSetWallpaper={handleSetWallpaper}
 				onNextImage={handleNextImagePreview}
 				onShowSettings={() => setShowSettings(true)}
-				onDownloadImage={handleDownloadImage}
 				onHoverAction={setHoveredActionName}
 			/>
 
