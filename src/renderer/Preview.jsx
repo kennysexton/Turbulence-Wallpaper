@@ -44,17 +44,15 @@ function Preview({ currentPhoto }) {
 							)}
 						</div>
 					</div>
-				) :
-				(
-					<p className="text-center mb-4">No wallpaper information available. Please set your
-						API key in the
-						settings.</p>
-				)
-			}
-
-		</div>
-	)
-		;
+				) : (
+        <div className="w-full h-full flex items-center justify-center bg-gray-700">
+          <p className="text-white">
+            No wallpaper information available. Please set your API key in the settings.
+          </p>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default Preview;

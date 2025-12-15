@@ -1,5 +1,5 @@
 {
-  "name": "unsplash-windows-wallpaper",
+  "name": "turbulence-wallpaper",
   "version": "1.0.0",
   "description": "A lightweight Electron-based Windows application that automatically updates the desktop wallpaper using images from the Unsplash API.",
   "main": "src/main/main.js",
