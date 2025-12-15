@@ -14,7 +14,7 @@ function SettingsPage({
 	};
 
 	return (
-		<div className="bg-white p-8 rounded-lg shadow-xl max-w-lg mx-auto mt-10 relative">
+		<div className="bg-white p-10 rounded-lg shadow-xl max-w-lg mx-auto relative">
 			{onClose && (
 				<button
 					onClick={onClose}
@@ -23,11 +23,11 @@ function SettingsPage({
 					<Close className="w-5 h-5"/>
 				</button>
 			)}
-			<h1 className="text-2xl font-bold mb-4">Unsplash Wallpaper Settings</h1>
+			<h1 className="text-2xl font-bold mb-2">Settings</h1>
 			<p className="mb-6 text-gray-700">Please configure your settings below.</p>
 
 			<div className="mb-4">
-				<label htmlFor="api-key" className="block text-gray-700 text-sm font-bold mb-2">Unsplash API Key:</label>
+				<label htmlFor="api-key" className="block text-gray-700 text-sm font-bold mb-2">Unsplash Access Key:</label>
 				<input
 					type="text"
 					id="api-key"
@@ -73,7 +73,7 @@ function SettingsPage({
 					onClick={handleSaveSettings}
 					className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-sm focus:outline-hidden focus:shadow-outline"
 				>
-					Save Preferences
+					Save Settings
 				</button>
 			</div>
 		</div>
