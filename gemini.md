@@ -1,6 +1,4 @@
-# Unsplash Windows Wallpaper App - Project Summary
-
-This document provides an overview of the "Unsplash Windows Wallpaper App," a lightweight Electron-based application designed to automatically update the desktop wallpaper using images from the Unsplash API.
+# Turbulence Wallpaper - A Wallpaper app for Windows
 
 ## 🚀 Overview
 

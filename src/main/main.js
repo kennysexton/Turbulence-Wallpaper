@@ -369,7 +369,7 @@ app.whenReady().then(async () => { // Made this async to await loadSettings
         app.quit();
     }}
   ]);
-  appTray.setToolTip('Unsplash Wallpaper App');
+  appTray.setToolTip('Turbulence Wallpaper');
   appTray.setContextMenu(contextMenu);
 
   // If API key exists, trigger wallpaper update with loaded settings

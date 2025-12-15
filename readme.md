@@ -1,4 +1,4 @@
-# 📸 Windows Unsplash Wallpaper App  
+# 📸 Turbulence Wallpaper
 A lightweight Electron-based Windows application that automatically updates the desktop wallpaper using images from the Unsplash API.
 
 ---
@@ -63,7 +63,7 @@ Electron apps **can** be distributed through the Windows Store when packaged as 
    "win": {
      "target": "msix",
      "publisherName": "Your Publisher Name",
-     "identityName": "com.yourcompany.unsplashwallpaper"
+     "identityName": "com.yourcompany.turbulencewallpaper"
    }
    ```
 2. Sign the package using a certificate from the Microsoft Partner Center.  
