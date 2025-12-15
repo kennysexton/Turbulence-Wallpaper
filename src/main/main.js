@@ -395,8 +395,8 @@ ipcMain.handle('get-next-image', async (event, settings) => {
       locationName: imageData.location?.name,
       userName: imageData.user?.name,
       userProfileUrl: imageData.user?.links?.html,
-      description: imageData.description || imageData.alt_description, // Add description
-      htmlLink: imageData.links.html, // Add HTML link
+      description: imageData.description,
+      htmlLink: imageData.links.html,
     };
   } catch (error) {
     console.error('Error fetching next image data:', error.message);

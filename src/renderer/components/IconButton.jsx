@@ -1,6 +1,6 @@
 import React from 'react';
 
-const IconButton = ({ icon: Icon, actionName, onClick, className = '', onMouseEnter, onMouseLeave, ...props }) => {
+const IconButton = ({ icon: Icon, onClick, className = '', onMouseEnter, onMouseLeave, ...props }) => {
   return (
     <button
       onClick={onClick}
