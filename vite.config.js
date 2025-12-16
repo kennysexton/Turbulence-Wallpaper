@@ -1,8 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import svgr from 'vite-plugin-svgr' // Import svgr
-import path from 'path'; // Import path module
-import { readFileSync } from 'fs'; // Import readFileSync
+import svgr from 'vite-plugin-svgr'
+import { readFileSync } from 'fs';
 
 const packageJson = JSON.parse(readFileSync('./package.json', 'utf-8'));
 

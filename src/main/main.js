@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, Tray, Menu, shell } = require('electron');
 const path = require('path');
 const https = require('https');
 const fs = require('fs');
-const { exec, spawn } = require('child_process');
+const { spawn } = require('child_process');
 
 const packageJson = require('../../package.json');
 // Sanitize the app name to create a valid directory name
@@ -139,7 +139,7 @@ async function downloadImage(imageUrl, filePath) {
 async function setWallpaper(imagePath) {
   return new Promise((resolve, reject) => {
     console.log(`Attempting to set wallpaper directly via Win32 API for path: ${imagePath}`);
-    
+
     const psPath = path.join(process.env.SystemRoot, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
 
     // This command uses the more reliable SystemParametersInfo Win32 API call to set the wallpaper.
@@ -177,7 +177,7 @@ async function setWallpaper(imagePath) {
         exit 1
       }
     `;
-    
+
     console.log('Spawning PowerShell process to call Win32 API...');
     const ps = spawn(psPath, ['-Command', command]);
 
@@ -322,6 +322,12 @@ function createWindow (initialSettings = {}) {
     width: 800,
     height: 600,
     frame: false,
+    titleBarStyle: 'hidden',
+    titleBarOverlay: {
+      color: '#2f3241',
+      symbolColor: '#74b1be',
+      height: 30
+    },
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true, // Enable context isolation
@@ -351,7 +357,7 @@ function createWindow (initialSettings = {}) {
 app.whenReady().then(async () => { // Made this async to await loadSettings
   // Load settings on startup
   const loadedSettings = loadSettingsFromFile();
-  
+
   createWindow(loadedSettings);
 
   app.on('activate', function () {
@@ -359,7 +365,7 @@ app.whenReady().then(async () => { // Made this async to await loadSettings
   });
 
   // Create system tray icon
-  const iconPath = path.join(app.getAppPath(), 'build/icon.png');
+  const iconPath = path.join(app.getAppPath(), 'src/renderer/public/icon.png');
   appTray = new Tray(iconPath);
 
   const contextMenu = Menu.buildFromTemplate([

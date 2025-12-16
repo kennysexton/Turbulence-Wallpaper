@@ -17,12 +17,12 @@
       "dist/**/*",
       "src/main/**/*",
       "src/shared/**/*",
-      "build/icon.png",
+      "src/renderer/public/icon.png",
       "package.json"
     ],
     "win": {
       "target": "nsis",
-      "icon": "build/icon.png"
+      "icon": "src/renderer/public/icon.png"
     }
   },
   "dependencies": {

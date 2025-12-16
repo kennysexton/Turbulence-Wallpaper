@@ -3,6 +3,7 @@ import SettingsPage from './SettingsPage.jsx';
 import Preview from './Preview.jsx';
 import {UpdateFrequency} from '../shared/enums.js';
 import Options from "./components/Options";
+import TitleBar from "./components/TitleBar";
 
 function App() {
 	const [showSettings, setShowSettings] = useState(false);
@@ -83,15 +84,18 @@ function App() {
 	}, [currentPhoto, previewPhoto]);
 
 	return (
-		<div className="relative h-full flex flex-col">
-			<Preview apiKey={apiKey} searchTerms={searchTerms} currentPhoto={previewPhoto || currentPhoto}/>
+		<div className="h-full flex flex-col">
+			<TitleBar />
+			<main className="relative flex-grow">
+				<Preview apiKey={apiKey} searchTerms={searchTerms} currentPhoto={previewPhoto || currentPhoto}/>
 
-			<Options
-				onSetWallpaper={handleSetWallpaper}
-				onNextImage={handleNextImagePreview}
-				onShowSettings={() => setShowSettings(true)}
-				onHoverAction={setHoveredActionName}
-			/>
+				<Options
+					onSetWallpaper={handleSetWallpaper}
+					onNextImage={handleNextImagePreview}
+					onShowSettings={() => setShowSettings(true)}
+					onHoverAction={setHoveredActionName}
+				/>
+			</main>
 
 			{
 				showSettings && (
