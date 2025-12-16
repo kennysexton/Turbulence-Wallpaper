@@ -51,31 +51,32 @@ html, body, #root {
 
 /* Got easing function from this project: https://larsenwork.com/easing-gradients/#editor */
 .gradient {
-  background-image: linear-gradient(to top,
-    hsl(230, 16%, 22%) 0%,
-    hsla(230, 16%, 22%) 0.2%,
-    hsla(230, 16%, 22%) 0.9%,
-    hsla(230, 16%, 22%) 2.1%,
-    hsla(230, 16%, 22%) 4.1%,
-    hsla(230, 16%, 22%) 6.8%,
-    hsla(230, 16%, 22%) 10.4%,
-    hsla(230, 16%, 22%) 15%,
-    hsla(230, 16%, 22%) 20.7%,
-    hsla(230, 16%, 22%) 27.6%,
-    hsla(230, 16%, 22%) 35.9%,
-    hsla(230, 16%, 22%) 45.5%,
-    hsla(230, 16%, 22%) 56.6%,
-    hsla(230, 16%, 22%) 69.3%,
-    hsla(230, 16%, 22%) 83.7%,
-    hsla(230, 16%, 22%) 100%
-  );
+    background-image: linear-gradient(
+            to bottom,
+            hsl(230, 16%, 22%) 0%,
+            hsla(230, 16%, 22%, 0.987) 0.2%,
+            hsla(230, 16%, 22%, 0.951) 0.9%,
+            hsla(230, 16%, 22%, 0.896) 2.1%,
+            hsla(230, 16%, 22%, 0.825) 4.1%,
+            hsla(230, 16%, 22%, 0.741) 6.8%,
+            hsla(230, 16%, 22%, 0.648) 10.4%,
+            hsla(230, 16%, 22%, 0.55) 15%,
+            hsla(230, 16%, 22%, 0.45) 20.7%,
+            hsla(230, 16%, 22%, 0.352) 27.6%,
+            hsla(230, 16%, 22%, 0.259) 35.9%,
+            hsla(230, 16%, 22%, 0.175) 45.5%,
+            hsla(230, 16%, 22%, 0.104) 56.6%,
+            hsla(230, 16%, 22%, 0.049) 69.3%,
+            hsla(230, 16%, 22%, 0.013) 83.7%,
+            hsla(230, 16%, 22%, 0) 100%
+    );
 }
 
-/* Make sure buttons/inputs in the title bar are not draggable */
+    /* Make sure buttons/inputs in the title bar are not draggable */
 
-.title-bar button,
-.title-bar input,
-.title-bar select,
-.title-bar textarea {
-    -webkit-app-region: no-drag;
-}
+    .title-bar button,
+    .title-bar input,
+    .title-bar select,
+    .title-bar textarea {
+        -webkit-app-region: no-drag;
+    }
