@@ -1,8 +1,6 @@
-# Turbulence Wallpaper - A Wallpaper app for Windows
+# Turbulence Wallpaper - Project Summary
 
-## 🚀 Overview
-
-The application allows users to configure their Unsplash API key, search terms, and update frequency. It runs in the background, updating the wallpaper as specified, and provides a clean React UI for management.
+This document provides an overview of the "Turbulence Wallpaper," a lightweight Electron-based application designed to automatically update the desktop wallpaper using images from the Unsplash API with a focus on dynamic and artistic turbulence patterns.
 
 ## 🛠️ Technologies Used
 
