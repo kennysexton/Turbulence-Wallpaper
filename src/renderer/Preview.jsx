@@ -18,7 +18,7 @@ function Preview({ currentPhoto }) {
 							<img
 								src={currentPhoto.fullUrl}
 								alt={currentPhoto.description || ''}
-								className="absolute inset-0 w-full h-full object-cover object-center"
+								className="absolute inset-0 w-full h-full object-cover object-center -z-10"
 							/>
 						</div>
 						<div className="absolute bottom-0 backdrop-blur-md bg-white/40 py-2 px-4 w-full flex flex-col sm:flex-row justify-between ">

@@ -322,12 +322,6 @@ function createWindow (initialSettings = {}) {
     width: 800,
     height: 600,
     frame: false,
-    titleBarStyle: 'hidden',
-    titleBarOverlay: {
-      color: '#2f3241',
-      symbolColor: '#74b1be',
-      height: 30
-    },
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true, // Enable context isolation
@@ -389,6 +383,18 @@ app.whenReady().then(async () => { // Made this async to await loadSettings
 app.on('window-all-closed', function () {
   // Overridden to prevent app from quitting when window is closed.
   // The app will continue to run in the system tray.
+});
+
+ipcMain.on('close-window', () => {
+  if (mainWindow) {
+    mainWindow.close();
+  }
+});
+
+ipcMain.on('minimize-window', () => {
+  if (mainWindow) {
+    mainWindow.minimize();
+  }
 });
 
 ipcMain.handle('save-settings', async (event, settings) => {

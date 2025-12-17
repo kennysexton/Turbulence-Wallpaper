@@ -13,7 +13,7 @@ function Options({
   onHoverAction,
 }) {
   return (
-    <div className="absolute w-full top-[var(--titlebar-height)] p-4 flex justify-between">
+    <div className="absolute w-full top-10 p-4 flex justify-between">
       {/* Gradient Overlay */}
       <div className="absolute inset-0 gradient h-[300px] z-10"></div>
       <div className="relative flex gap-3 z-20">
