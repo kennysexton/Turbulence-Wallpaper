@@ -228,7 +228,7 @@ async function processAndSetWallpaper(photoData) {
     const downloadDir = path.join(app.getPath('temp'), appName);
     fs.mkdirSync(downloadDir, { recursive: true });
 
-    const imagePath = path.join(downloadDir, `unsplash_wallpaper_${photoData.id}.jpg`);
+    const imagePath = path.join(downloadDir, `unsplash_wallpaper.jpg`);
     await downloadImage(photoData.fullUrl, imagePath);
     console.log('Image for wallpaper downloaded to:', imagePath);
 
@@ -424,6 +424,10 @@ ipcMain.handle('get-next-image', async (event, settings) => {
     return null; // Return null or an error object
   }
 
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('loading-start');
+  }
+
   try {
     const imageData = await fetchUnsplashImage(apiKey, searchTerms);
     // Important: We're NOT saving or setting the wallpaper here.
@@ -440,11 +444,23 @@ ipcMain.handle('get-next-image', async (event, settings) => {
   } catch (error) {
     console.error('Error fetching next image data:', error.message);
     return null; // Return null on error
+  } finally {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('loading-end');
+    }
   }
 });
 
 // Listener to explicitly set a wallpaper and save the data
-ipcMain.handle('set-wallpaper', (event, photoData) => processAndSetWallpaper(photoData));
+ipcMain.handle('set-wallpaper', async (event, photoData) => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('loading-start');
+  }
+  await processAndSetWallpaper(photoData)
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('loading-end');
+  }
+});
 
 // Listener to open a URL in the user's default browser
 ipcMain.handle('open-external-link', async (event, url) => {
