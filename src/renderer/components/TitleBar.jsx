@@ -19,7 +19,7 @@ const TitleBar = () => {
 
   return (
     <div
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between h-10 pl-2 backdrop-blur-md bg-white/40 text-slate-800"
+      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between h-10 pl-2 backdrop-blur-md bg-slate-900/60 text-slate-200"
       style={{ WebkitAppRegion: 'drag' }}
     >
       <div className="flex items-center">
@@ -29,7 +29,7 @@ const TitleBar = () => {
       <div className="flex" style={{ WebkitAppRegion: 'no-drag' }}> {/* Container for buttons */}
         <button
           onClick={handleMinimize}
-          className="w-12 h-10 flex items-center justify-center hover:bg-gray-200" // Standard hover for minimize
+          className="w-12 h-10 flex items-center justify-center hover:bg-slate-700" // Standard hover for minimize
         >
           <MinusIcon className="w-4 h-4" />
         </button>

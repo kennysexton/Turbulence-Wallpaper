@@ -11,7 +11,7 @@ function Preview({ currentPhoto }) {
   };
 
 	return (
-		<div className=" text-slate-800 w-full h-full">
+		<div className=" text-slate-200 w-full h-full">
 			{currentPhoto ? (
 					<div className="w-full h-full">
 						<div className="w-full h-full">
@@ -21,7 +21,7 @@ function Preview({ currentPhoto }) {
 								className="absolute inset-0 w-full h-full object-cover object-center -z-10"
 							/>
 						</div>
-						<div className="absolute bottom-0 backdrop-blur-md bg-white/40 py-2 px-4 w-full flex flex-col sm:flex-row justify-between ">
+						<div className="absolute bottom-0 backdrop-blur-md bg-slate-900/60 py-2 px-4 w-full flex flex-col sm:flex-row justify-between ">
 							<p className=""><strong>By:</strong>{' '}
 								{currentPhoto.userName ? (
 									<a
