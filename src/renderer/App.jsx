@@ -83,6 +83,8 @@ function App() {
 		}
 	}, [currentPhoto, previewPhoto]);
 
+	const showSetWallpaper = previewPhoto && (!currentPhoto || previewPhoto.id !== currentPhoto.id);
+
 	return (
 		<div className="h-full flex flex-col">
 			<TitleBar />
@@ -94,6 +96,7 @@ function App() {
 					onNextImage={handleNextImagePreview}
 					onShowSettings={() => setShowSettings(true)}
 					onHoverAction={setHoveredActionName}
+					showSetWallpaper={showSetWallpaper}
 				/>
 			</main>
 

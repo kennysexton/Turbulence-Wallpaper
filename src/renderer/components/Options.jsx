@@ -11,6 +11,7 @@ function Options({
   onShowSettings,
   onDownloadImage,
   onHoverAction,
+  showSetWallpaper
 }) {
   return (
     <div className="absolute w-full top-10 p-4 flex justify-between">
@@ -23,12 +24,14 @@ function Options({
         />
       </div>
       <div className="relative flex gap-3 z-20">
-        <IconButton
-          icon={CheckIcon}
-          onClick={onSetWallpaper}
-          onMouseEnter={() => onHoverAction("Set As Wallpaper")}
-          onMouseLeave={() => onHoverAction(null)}
-        />
+        {showSetWallpaper &&
+          <IconButton
+            icon={CheckIcon}
+            onClick={onSetWallpaper}
+            onMouseEnter={() => onHoverAction("Set As Wallpaper")}
+            onMouseLeave={() => onHoverAction(null)}
+          />
+        }
         <IconButton
           icon={FastForwardIcon}
           onClick={onNextImage}
