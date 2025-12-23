@@ -17,12 +17,25 @@
       "dist/**/*",
       "src/main/**/*",
       "src/shared/**/*",
-      "src/renderer/public/icon.png",
+      "build/icon.png",
       "package.json"
     ],
     "win": {
-      "target": "nsis",
-      "icon": "src/renderer/public/icon.png"
+      "target": [
+        "nsis",
+        "appx"
+      ],
+      "icon": "build/icon.png"
+    },
+    "appx": {
+      "identityName": "NoodleIndustries.TurbulenceWallpaper",
+      "publisher": "CN=Noodle Industries",
+      "publisherDisplayName": "Noodle Industries"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "kennysexton",
+      "repo": "Turbulence-Wallpaper"
     }
   },
   "dependencies": {

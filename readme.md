@@ -1,46 +1,20 @@
-# 📸 Turbulence Wallpaper
+# Turbulence Wallpaper
 A lightweight Electron-based Windows application that automatically updates the desktop wallpaper using images from the Unsplash API.
 
 ---
 
 ## 🌟 Overview
 
-This project uses **Electron**, **Node.js**, and **React** to build a native-feeling Windows desktop app. The app periodically fetches an image from Unsplash (based on the user’s settings) and sets it as the system wallpaper.
+This project uses **Electron**, **Node.js**, and **React** to build a Windows desktop app. The app periodically fetches an image from Unsplash (based on the user’s settings) and sets it as the system wallpaper.
 
 The application is packaged as an **MSIX** to allow distribution through the **Microsoft Store**.
 
 ---
 
-## 🏗️ Architecture Summary
+## 🔑 Bring your own API key (required)
 
-### **Electron Main Process**
-- Manages application startup, windows, and system integration  
-- Stores configuration (API keys, preferences) in the user’s AppData directory  
-- Runs the wallpaper update scheduler  
-- Invokes the wallpaper-setting service via Node.js
-
-### **Renderer (UI)**
-- Built with HTML/CSS/JS or React  
-- Prompts user for Unsplash API key  
-- Allows configuration of search terms and update frequency  
-- Sends preferences to the main process via IPC
-
-### **Wallpaper Service**
-- Calls Unsplash REST endpoints using the user’s API key  
-- Downloads a selected image to a local directory  
-- Sets the wallpaper by invoking:
-  - Windows `SystemParametersInfoW(SPI_SETDESKWALLPAPER)`  
-  - via a Node native module or PowerShell invocation  
-
----
-
-## 🛠️ Technology Choices
-
-- **Electron** for desktop application shell  
-- **Node.js** for backend operations (filesystem, network calls)  
-- **JavaScript or TypeScript** for all logic  
-- **Optional React UI** for a richer settings experience  
-- **electron-builder** for packaging MSIX and signing
+Users must create their [own API access key](https://unsplash.com/developers) to run the app. 
+This is because wallpaper app unfortunately [does not qualify for a production level rate limit](https://help.unsplash.com/en/articles/2511257-guideline-replicating-unsplash)
 
 ---
 
