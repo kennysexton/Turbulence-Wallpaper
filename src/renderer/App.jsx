@@ -2,10 +2,10 @@ import React, {useState, useEffect, useCallback} from 'react';
 import SettingsPage from './SettingsPage.jsx';
 import Preview from './Preview.jsx';
 import {UpdateFrequency} from '../shared/enums.js';
-import IconButton from "./components/IconButton";
-import {ReactComponent as SettingsIcon} from './icons/settings.svg';
-import {ReactComponent as FastForwardIcon} from './icons/fast-forward.svg';
-import {ReactComponent as CheckIcon} from './icons/check.svg';
+import Options from "./components/Options";
+import TitleBar from "./components/TitleBar";
+
+import {ReactComponent as Dots} from "./icons/loading-dots.svg";
 
 function App() {
 	const [showSettings, setShowSettings] = useState(false);
@@ -14,6 +14,7 @@ function App() {
 	const [updateFrequency, setUpdateFrequency] = useState(UpdateFrequency.DAILY);
 	const [currentPhoto, setCurrentPhoto] = useState(null);
 	const [hoveredActionName, setHoveredActionName] = useState(null);
+	const [loading, setLoading] = useState(false);
 
 	const [previewPhoto, setPreviewPhoto] = useState(null);
 
@@ -27,11 +28,20 @@ function App() {
 			});
 			const unsubscribePhoto = window.api.on('load-current-photo', (photo) => {
 				setCurrentPhoto(photo);
+				setPreviewPhoto(null);
+			});
+			const unsubscribeLoadingStart = window.api.on('loading-start', () => {
+				setLoading(true);
+			});
+			const unsubscribeLoadingEnd = window.api.on('loading-end', () => {
+				setLoading(false);
 			});
 			// Cleanup listeners on component unmount
 			return () => {
 				unsubscribeSettings();
 				unsubscribePhoto();
+				unsubscribeLoadingStart();
+				unsubscribeLoadingEnd();
 			};
 		}
 	}, []);
@@ -60,6 +70,7 @@ function App() {
 			const newPhoto = await window.api.getNextImage({apiKey, searchTerms});
 			if (newPhoto) {
 				setPreviewPhoto(newPhoto); // Store in the new preview state
+				setCurrentPhoto(null); // Clear the current photo so the preview is shown
 			}
 		} else {
 			console.error('API not available to fetch next image preview.');
@@ -85,37 +96,31 @@ function App() {
 		}
 	}, [currentPhoto, previewPhoto]);
 
-	return (
-		<div className="relative h-full flex flex-col">
-			<Preview apiKey={apiKey} searchTerms={searchTerms} currentPhoto={previewPhoto || currentPhoto}/>
+	const showSetWallpaper = previewPhoto && (!currentPhoto || previewPhoto.id !== currentPhoto.id);
 
-			<div className="absolute w-full top-0 p-4 flex justify-between">
-				<IconButton
-					icon={CheckIcon} // New Check button
-					actionName="Set Wallpaper"
-					onClick={handleSetWallpaper}
-					onMouseEnter={() => setHoveredActionName("Set Wallpaper")}
-					onMouseLeave={() => setHoveredActionName(null)}
+	return (
+		<div className="h-full flex flex-col">
+			<TitleBar />
+			<main className="relative flex-grow">
+				{loading && (
+					<div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+						<Dots className="w-10 h-10 text-white animate-pulse" />
+					</div>
+				)}
+				<Preview apiKey={apiKey} searchTerms={searchTerms} currentPhoto={previewPhoto || currentPhoto}/>
+
+				<Options
+					onSetWallpaper={handleSetWallpaper}
+					onNextImage={handleNextImagePreview}
+					onShowSettings={() => setShowSettings(true)}
+					onHoverAction={setHoveredActionName}
+					showSetWallpaper={showSetWallpaper}
 				/>
-				<IconButton
-					icon={FastForwardIcon} // Next Image button
-					actionName="Next Image (Preview)"
-					onClick={handleNextImagePreview}
-					onMouseEnter={() => setHoveredActionName("Next Image (Preview)")}
-					onMouseLeave={() => setHoveredActionName(null)}
-				/>
-				<IconButton
-					icon={SettingsIcon} // Settings button
-					actionName="Open Settings"
-					onClick={() => setShowSettings(true)}
-					onMouseEnter={() => setHoveredActionName("Open Settings")}
-					onMouseLeave={() => setHoveredActionName(null)}
-				/>
-			</div>
+			</main>
 
 			{
 				showSettings && (
-					<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+					<div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
 						<SettingsPage
 							apiKey={apiKey}
 							setApiKey={setApiKey}
@@ -140,8 +145,7 @@ function App() {
 				)
 			}
 		</div>
-	)
-		;
+	);
 }
 
 export default App;

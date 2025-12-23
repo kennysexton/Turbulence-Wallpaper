@@ -1,13 +1,42 @@
 {
-  "name": "unsplash-windows-wallpaper",
-  "version": "1.0.0",
-  "description": "A lightweight Electron-based Windows application that automatically updates the desktop wallpaper using images from the Unsplash API.",
+  "name": "turbulence-wallpaper",
+  "version": "1.0.1",
+  "description": "A lightweight Electron-based Windows application that automatically updates the desktop wallpaper using images from the Unsplash API with a focus on dynamic and artistic turbulence patterns.",
   "main": "src/main/main.js",
   "scripts": {
     "start": "electron .",
     "dev": "vite",
     "build": "vite build",
-    "dev-electron": "npm run build && npm start"
+    "dev-electron": "npm run build && npm start",
+    "package": "electron-builder"
+  },
+  "build": {
+    "appId": "com.electron.turbulence-wallpaper",
+    "productName": "Turbulence Wallpaper",
+    "files": [
+      "dist/**/*",
+      "src/main/**/*",
+      "src/shared/**/*",
+      "build/icon.png",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "appx"
+      ],
+      "icon": "build/icon.png"
+    },
+    "appx": {
+      "identityName": "NoodleIndustries.TurbulenceWallpaper",
+      "publisher": "CN=Noodle Industries",
+      "publisherDisplayName": "Noodle Industries"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "kennysexton",
+      "repo": "Turbulence-Wallpaper"
+    }
   },
   "dependencies": {
     "react": "^18.2.0",
@@ -24,6 +53,7 @@
     "@tailwindcss/postcss": "^4.1.18",
     "@vitejs/plugin-react": "^4.0.3",
     "electron": "^39.2.6",
+    "electron-builder": "^26.0.12",
     "postcss": "^8.4.27",
     "tailwindcss": "^4.1.18",
     "vite": "^4.4.5",

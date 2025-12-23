@@ -1,8 +1,12 @@
-const { app, BrowserWindow, ipcMain, Tray, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, Tray, Menu, shell } = require('electron');
 const path = require('path');
 const https = require('https');
 const fs = require('fs');
-const { exec, spawn } = require('child_process');
+const { spawn } = require('child_process');
+
+const packageJson = require('../../package.json');
+// Sanitize the app name to create a valid directory name
+const appName = (packageJson.name || 'Turbulence-Wallpaper').replace(/[<>:"/\\|?*]/g, '');
 
 const settingsFilePath = path.join(app.getPath('userData'), 'settings.json');
 const currentPhotoFilePath = path.join(app.getPath('userData'), 'current-photo.json');
@@ -22,7 +26,6 @@ let wallpaperUpdateInterval; // To hold our interval ID for scheduling
  * @typedef {object} CurrentPhoto
  * @property {string} id
  * @property {string} fullUrl
- * @property {string} downloadLink
  * @property {string} [locationName]
  * @property {string} [userName]
  * @property {string} [userProfileUrl]
@@ -136,7 +139,7 @@ async function downloadImage(imageUrl, filePath) {
 async function setWallpaper(imagePath) {
   return new Promise((resolve, reject) => {
     console.log(`Attempting to set wallpaper directly via Win32 API for path: ${imagePath}`);
-    
+
     const psPath = path.join(process.env.SystemRoot, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
 
     // This command uses the more reliable SystemParametersInfo Win32 API call to set the wallpaper.
@@ -174,7 +177,7 @@ async function setWallpaper(imagePath) {
         exit 1
       }
     `;
-    
+
     console.log('Spawning PowerShell process to call Win32 API...');
     const ps = spawn(psPath, ['-Command', command]);
 
@@ -210,47 +213,70 @@ async function setWallpaper(imagePath) {
   });
 }
 
+/**
+ * Takes a photo data object, downloads the image, sets it as the wallpaper,
+ * saves the metadata, and notifies the renderer.
+ * @param {CurrentPhoto} photoData - The photo object to be processed.
+ */
+async function processAndSetWallpaper(photoData) {
+  if (!photoData || !photoData.fullUrl) {
+    console.error('Invalid photo data provided to processAndSetWallpaper.');
+    return;
+  }
+
+  try {
+    const downloadDir = path.join(app.getPath('temp'), appName);
+    fs.mkdirSync(downloadDir, { recursive: true });
+
+    const imagePath = path.join(downloadDir, `unsplash_wallpaper.jpg`);
+    await downloadImage(photoData.fullUrl, imagePath);
+    console.log('Image for wallpaper downloaded to:', imagePath);
+
+    await setWallpaper(imagePath);
+    await saveCurrentPhotoToFile(photoData);
+
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('load-current-photo', photoData);
+    }
+  } catch (error) {
+    console.error('Error during processAndSetWallpaper:', error.message);
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('load-current-photo', null); // Send null on error
+    }
+  }
+}
+
 // Function to handle the actual wallpaper update process
 async function updateWallpaper(apiKey, searchTerms) {
   if (!apiKey) {
     console.warn('API Key is missing for wallpaper update. Skipping.');
-    // Send a null photo update to renderer to clear previous info if any
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('load-current-photo', null);
     }
     return;
   }
+
   try {
     const imageData = await fetchUnsplashImage(apiKey, searchTerms);
     console.log(`Fetched Unsplash image (ID: ${imageData.id})`);
 
-    const tempDir = app.getPath('temp');
-    // Use the image ID for a unique filename to prevent caching issues
-    const imagePath = path.join(tempDir, `unsplash_wallpaper_${imageData.id}.jpg`);
-    
-    await downloadImage(imageData.urls.full, imagePath);
-    console.log('Image downloaded to:', imagePath);
-
-    await setWallpaper(imagePath);
-
-    /** @type {CurrentPhoto} */
+    // Transform the raw API data into our CurrentPhoto shape
     const currentPhoto = {
       id: imageData.id,
       fullUrl: imageData.urls.full,
-      downloadLink: imageData.links.download,
       locationName: imageData.location?.name,
       userName: imageData.user?.name,
       userProfileUrl: imageData.user?.links?.html,
+      description: imageData.description,
+      htmlLink: imageData.links.html,
     };
-    await saveCurrentPhotoToFile(currentPhoto);
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('load-current-photo', currentPhoto);
-    }
+
+    await processAndSetWallpaper(currentPhoto);
 
   } catch (error) {
     console.error('Error during scheduled wallpaper update:', error.message);
     if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('load-current-photo', null); // Send null on error
+      mainWindow.webContents.send('load-current-photo', null);
     }
   }
 }
@@ -296,6 +322,7 @@ function createWindow (initialSettings = {}) {
     width: 800,
     height: 600,
     frame: false,
+    icon: path.join(__dirname, '../../build/icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true, // Enable context isolation
@@ -325,7 +352,7 @@ function createWindow (initialSettings = {}) {
 app.whenReady().then(async () => { // Made this async to await loadSettings
   // Load settings on startup
   const loadedSettings = loadSettingsFromFile();
-  
+
   createWindow(loadedSettings);
 
   app.on('activate', function () {
@@ -333,7 +360,7 @@ app.whenReady().then(async () => { // Made this async to await loadSettings
   });
 
   // Create system tray icon
-  const iconPath = path.join(app.getAppPath(), 'build/icon.png');
+  const iconPath = path.join(app.getAppPath(), 'src/renderer/public/icon.png');
   appTray = new Tray(iconPath);
 
   const contextMenu = Menu.buildFromTemplate([
@@ -343,7 +370,7 @@ app.whenReady().then(async () => { // Made this async to await loadSettings
         app.quit();
     }}
   ]);
-  appTray.setToolTip('Unsplash Wallpaper App');
+  appTray.setToolTip('Turbulence Wallpaper');
   appTray.setContextMenu(contextMenu);
 
   // If API key exists, trigger wallpaper update with loaded settings
@@ -357,6 +384,18 @@ app.whenReady().then(async () => { // Made this async to await loadSettings
 app.on('window-all-closed', function () {
   // Overridden to prevent app from quitting when window is closed.
   // The app will continue to run in the system tray.
+});
+
+ipcMain.on('close-window', () => {
+  if (mainWindow) {
+    mainWindow.close();
+  }
+});
+
+ipcMain.on('minimize-window', () => {
+  if (mainWindow) {
+    mainWindow.minimize();
+  }
 });
 
 ipcMain.handle('save-settings', async (event, settings) => {
@@ -385,6 +424,10 @@ ipcMain.handle('get-next-image', async (event, settings) => {
     return null; // Return null or an error object
   }
 
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('loading-start');
+  }
+
   try {
     const imageData = await fetchUnsplashImage(apiKey, searchTerms);
     // Important: We're NOT saving or setting the wallpaper here.
@@ -392,40 +435,36 @@ ipcMain.handle('get-next-image', async (event, settings) => {
     return {
       id: imageData.id,
       fullUrl: imageData.urls.full,
-      downloadLink: imageData.links.download,
       locationName: imageData.location?.name,
       userName: imageData.user?.name,
       userProfileUrl: imageData.user?.links?.html,
+      description: imageData.description,
+      htmlLink: imageData.links.html,
     };
   } catch (error) {
     console.error('Error fetching next image data:', error.message);
     return null; // Return null on error
+  } finally {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('loading-end');
+    }
   }
 });
 
 // Listener to explicitly set a wallpaper and save the data
 ipcMain.handle('set-wallpaper', async (event, photoData) => {
-  if (!photoData || !photoData.fullUrl) {
-    console.error('Invalid photo data provided to set-wallpaper handler.');
-    return;
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('loading-start');
   }
+  await processAndSetWallpaper(photoData)
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('loading-end');
+  }
+});
 
-  try {
-    const tempDir = app.getPath('temp');
-    const imagePath = path.join(tempDir, `unsplash_wallpaper_${photoData.id}.jpg`);
-
-    await downloadImage(photoData.fullUrl, imagePath);
-    console.log('Image for wallpaper downloaded to:', imagePath);
-
-    await setWallpaper(imagePath);
-    await saveCurrentPhotoToFile(photoData);
-
-    // Optionally, send the confirmed photo back to the renderer
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('load-current-photo', photoData);
-    }
-  } catch (error) {
-    console.error('Error setting wallpaper and saving data:', error.message);
-    // Optionally notify the renderer of the failure
+// Listener to open a URL in the user's default browser
+ipcMain.handle('open-external-link', async (event, url) => {
+  if (url) {
+    await shell.openExternal(url);
   }
 });
