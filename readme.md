@@ -1,6 +1,6 @@
 # Turbulence Wallpaper
 
-![img.png](src/renderer/public/readme.png)
+![img.png](src/renderer/public/turbulence.png)
 A lightweight Electron-based Windows application that automatically updates the desktop wallpaper using images from the Unsplash API.
 
 
