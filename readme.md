@@ -11,7 +11,7 @@ This project uses **Electron**, **Node.js**, and **React** to build a Windows de
 ## Bring your own API key (required)
 
 Users must create their [own API access key](https://unsplash.com/developers) to run the app. 
-This is because wallpaper app unfortunately [does not qualify for a production level rate limit](https://help.unsplash.com/en/articles/2511257-guideline-replicating-unsplash)
+This is because wallpaper apps unfortunately [do not qualify for a production level rate limit](https://help.unsplash.com/en/articles/2511257-guideline-replicating-unsplash)
 
 ## Features
  
