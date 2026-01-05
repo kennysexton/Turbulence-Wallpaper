@@ -84,6 +84,31 @@ The project's file structure is organized for clarity and maintainability:
 *   `npm run dev-electron`: A convenience script to run `npm run build && npm start` sequentially.
 *   (For more advanced development, `npm run dev` can be used to run the Vite dev server alongside Electron, requiring changes in `main.js` to load the dev server URL.)
 
+### Automated GitHub Releases
+
+The project is configured to automatically create and upload releases to GitHub. This process uses `electron-builder`'s publish functionality.
+
+**Steps to Create a Release:**
+
+1.  **Generate a GitHub Personal Access Token**:
+    *   Go to your GitHub account settings.
+    *   Navigate to `Developer settings` -> `Personal access tokens`.
+    *   Generate a new token with the `repo` scope. This token is sensitive and should be kept private.
+2.  **Set the `GH_TOKEN` Environment Variable**:
+    *   Before running the release command, set this token as an environment variable named `GH_TOKEN` in your terminal.
+    *   Example (PowerShell): `$env:GH_TOKEN="your_token_here"`
+    *   Example (Bash/Zsh): `export GH_TOKEN="your_token_here"`
+3.  **Run the Release Command**:
+    *   Execute `npm run release`. This command will:
+        *   Build the application for configured targets (e.g., `.exe` installer, `.appx` package).
+        *   Attempt to code-sign the packages (if signing certificates are properly configured).
+        *   Create a draft release on your GitHub repository (`kennysexton/Turbulence-Wallpaper`) and upload the built artifacts to it.
+
+**Code Signing:**
+
+*   **AppX (`.appx`) Packages**: Your `package.json` specifies a `publisher` (`CN=Noodle Industries`). For successful signing, a valid code-signing certificate matching this publisher name must be installed on your build machine (typically in the Windows Certificate Store). `electron-builder` will usually detect and use it automatically.
+*   **NSIS (`.exe`) Installers**: The current configuration does not explicitly set up signing for the `.exe` installer. If you have a code-signing certificate (e.g., a `.pfx` file), you can configure `electron-builder` to use it by adding `certificateFile`, `certificatePassword`, and `signingTool` properties to the `win` or `nsis` section of your `build` configuration in `package.json`.
+
 ## ⚠️ Common Issues & Solutions
 
 ### Wallpaper Not Updating on Windows
