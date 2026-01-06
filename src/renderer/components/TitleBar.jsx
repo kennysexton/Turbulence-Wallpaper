@@ -4,7 +4,7 @@ import { ReactComponent as CloseIcon } from '../icons/close.svg';
 import { ReactComponent as MinusIcon } from '../icons/minus.svg'; // New import
 import IconButton from './IconButton';
 
-const TitleBar = () => {
+const TitleBar = ({ showSettings }) => {
   const handleClose = () => {
     if (window.api && window.api.closeWindow) {
       window.api.closeWindow();
@@ -20,7 +20,7 @@ const TitleBar = () => {
   return (
     <div
       className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between h-10 pl-2 backdrop-blur-md bg-slate-900/60 text-slate-200"
-      style={{ WebkitAppRegion: 'drag' }}
+      style={{ WebkitAppRegion: showSettings ? 'no-drag' : 'drag' }}
     >
       <div className="flex items-center">
         <AppIcon className="h-5 w-5 mr-2" />

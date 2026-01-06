@@ -319,8 +319,8 @@ function startWallpaperScheduler(frequency, apiKey, searchTerms) {
 
 function createWindow (initialSettings = {}) {
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 680,
+    height: 400,
     frame: false,
     icon: path.join(__dirname, '../../build/icon.png'),
     webPreferences: {
@@ -364,7 +364,6 @@ app.whenReady().then(async () => { // Made this async to await loadSettings
   appTray = new Tray(iconPath);
 
   const contextMenu = Menu.buildFromTemplate([
-    { label: 'Show App', click: () => mainWindow.show() },
     { label: 'Quit', click: () => {
         (app).isQuitting = true; // Set flag to allow app to quit
         app.quit();
@@ -372,6 +371,11 @@ app.whenReady().then(async () => { // Made this async to await loadSettings
   ]);
   appTray.setToolTip('Turbulence Wallpaper');
   appTray.setContextMenu(contextMenu);
+
+  // Show the window when the user clicks the tray icon
+  appTray.on('click', () => {
+    mainWindow.show();
+  });
 
   // If API key exists, trigger wallpaper update with loaded settings
   if (loadedSettings.apiKey) {
