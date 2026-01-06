@@ -15,6 +15,22 @@ let mainWindow; // Keep a global reference to the window object
 let appTray; // Keep a global reference to the tray icon
 let wallpaperUpdateInterval; // To hold our interval ID for scheduling
 
+// Enforce single instance
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    // Someone tried to run a second instance, we should focus our window.
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      if (!mainWindow.isVisible()) mainWindow.show(); // Show from tray
+      mainWindow.focus();
+    }
+  });
+}
+
 /**
  * @typedef {object} UserSettings
  * @property {string} [apiKey]
@@ -319,8 +335,8 @@ function startWallpaperScheduler(frequency, apiKey, searchTerms) {
 
 function createWindow (initialSettings = {}) {
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 680,
+    height: 400,
     frame: false,
     icon: path.join(__dirname, '../../build/icon.png'),
     webPreferences: {
@@ -360,11 +376,10 @@ app.whenReady().then(async () => { // Made this async to await loadSettings
   });
 
   // Create system tray icon
-  const iconPath = path.join(app.getAppPath(), 'src/renderer/public/icon.png');
+  const iconPath = path.join(__dirname, '../../build/icon.png');
   appTray = new Tray(iconPath);
 
   const contextMenu = Menu.buildFromTemplate([
-    { label: 'Show App', click: () => mainWindow.show() },
     { label: 'Quit', click: () => {
         (app).isQuitting = true; // Set flag to allow app to quit
         app.quit();
@@ -372,6 +387,11 @@ app.whenReady().then(async () => { // Made this async to await loadSettings
   ]);
   appTray.setToolTip('Turbulence Wallpaper');
   appTray.setContextMenu(contextMenu);
+
+  // Show the window when the user clicks the tray icon
+  appTray.on('click', () => {
+    mainWindow.show();
+  });
 
   // If API key exists, trigger wallpaper update with loaded settings
   if (loadedSettings.apiKey) {

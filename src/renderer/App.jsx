@@ -100,7 +100,7 @@ function App() {
 
 	return (
 		<div className="h-full flex flex-col">
-			<TitleBar />
+			<TitleBar showSettings={showSettings} />
 			<main className="relative flex-grow">
 				{loading && (
 					<div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">

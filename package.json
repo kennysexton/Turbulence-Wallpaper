@@ -1,6 +1,6 @@
 {
   "name": "turbulence-wallpaper",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "A lightweight Electron-based Windows application that automatically updates the desktop wallpaper using images from the Unsplash API with a focus on dynamic and artistic turbulence patterns.",
   "main": "src/main/main.js",
   "scripts": {
@@ -8,17 +8,25 @@
     "dev": "vite",
     "build": "vite build",
     "dev-electron": "npm run build && npm start",
-    "package": "electron-builder"
+    "package": "electron-builder",
+    "release": "electron-builder --publish always"
   },
   "build": {
     "appId": "com.electron.turbulence-wallpaper",
     "productName": "Turbulence Wallpaper",
+    "asar": true,
+    "npmRebuild": false,
+    "directories": {
+      "output": "release",
+      "app": "."
+    },
     "files": [
       "dist/**/*",
       "src/main/**/*",
       "src/shared/**/*",
       "build/icon.png",
-      "package.json"
+      "package.json",
+      "!node_modules/**/*"
     ],
     "win": {
       "target": [

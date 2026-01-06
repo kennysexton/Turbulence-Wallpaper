@@ -18,14 +18,11 @@ function SettingsPage({
 			{onClose && (
 				<button
 					onClick={onClose}
-					className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center cursor-pointer"
+					className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center cursor-pointer z-10"
 				>
 					<Close className="w-5 h-5"/>
 				</button>
 			)}
-			<h1 className="text-2xl font-bold mb-2">Settings</h1>
-			<p className="mb-6 text-gray-700">Please configure your settings below.</p>
-
 			<div className="mb-4">
 				<label htmlFor="api-key" className="block text-gray-700 text-sm font-bold mb-2">Unsplash Access Key:</label>
 				<input
