@@ -11,7 +11,9 @@ function App() {
 	const [showSettings, setShowSettings] = useState(false);
 	const [apiKey, setApiKey] = useState('');
 	const [searchTerms, setSearchTerms] = useState('nature');
+	const [collectionId, setCollectionId] = useState('');
 	const [updateFrequency, setUpdateFrequency] = useState(UpdateFrequency.DAILY);
+	const [unsplashUsername, setUnsplashUsername] = useState('');
 	const [currentPhoto, setCurrentPhoto] = useState(null);
 	const [hoveredActionName, setHoveredActionName] = useState(null);
 	const [loading, setLoading] = useState(false);
@@ -24,7 +26,9 @@ function App() {
 			const unsubscribeSettings = window.api.on('load-settings', (settings) => {
 				setApiKey(settings.apiKey || '');
 				setSearchTerms(settings.searchTerms || 'nature');
+				setCollectionId(settings.collectionId || '');
 				setUpdateFrequency(settings.updateFrequency || UpdateFrequency.DAILY);
+				setUnsplashUsername(settings.unsplashUsername || '');
 			});
 			const unsubscribePhoto = window.api.on('load-current-photo', (photo) => {
 				setCurrentPhoto(photo);
@@ -50,7 +54,9 @@ function App() {
 	const handleSaveSettings = useCallback((newSettings) => {
 		setApiKey(newSettings.apiKey);
 		setSearchTerms(newSettings.searchTerms);
+		setCollectionId(newSettings.collectionId);
 		setUpdateFrequency(newSettings.updateFrequency);
+		setUnsplashUsername(newSettings.unsplashUsername);
 		if (window.api && window.api.saveSettings) {
 			window.api.saveSettings(newSettings);
 			console.log('Settings saved and wallpaper update triggered!');
@@ -67,7 +73,7 @@ function App() {
 				return;
 			}
 			console.log('Fetching next image for preview...');
-			const newPhoto = await window.api.getNextImage({apiKey, searchTerms});
+			const newPhoto = await window.api.getNextImage({apiKey, searchTerms, collectionId});
 			if (newPhoto) {
 				setPreviewPhoto(newPhoto); // Store in the new preview state
 				setCurrentPhoto(null); // Clear the current photo so the preview is shown
@@ -75,7 +81,7 @@ function App() {
 		} else {
 			console.error('API not available to fetch next image preview.');
 		}
-	}, [apiKey, searchTerms]);
+	}, [apiKey, searchTerms, collectionId]);
 
 	// Function to set wallpaper on OS and save info
 	const handleSetWallpaper = useCallback(async () => {
@@ -126,8 +132,12 @@ function App() {
 							setApiKey={setApiKey}
 							searchTerms={searchTerms}
 							setSearchTerms={setSearchTerms}
+							collectionId={collectionId}
+							setCollectionId={setCollectionId}
 							updateFrequency={updateFrequency}
 							setUpdateFrequency={setUpdateFrequency}
+							unsplashUsername={unsplashUsername}
+							setUnsplashUsername={setUnsplashUsername}
 							onSave={handleSaveSettings}
 							onClose={() => setShowSettings(false)}
 						/>

@@ -35,7 +35,9 @@ if (!gotTheLock) {
  * @typedef {object} UserSettings
  * @property {string} [apiKey]
  * @property {string} [searchTerms]
+ * @property {string} [collectionId]
  * @property {string} [updateFrequency]
+ * @property {string} [unsplashUsername]
  */
 
 /**
@@ -94,12 +96,18 @@ function loadCurrentPhotoFromFile() {
 }
 
 // Function to fetch a random image from Unsplash
-async function fetchUnsplashImage(apiKey, searchTerms) {
+async function fetchUnsplashImage(apiKey, { searchTerms, collectionId }) {
   return new Promise((resolve, reject) => {
     const url = new URL('https://api.unsplash.com/photos/random');
-    if (searchTerms) {
+
+    // Unsplash API prioritizes collections over search terms if both are provided.
+    // We will enforce this by only adding one or the other.
+    if (collectionId) {
+      url.searchParams.append('collections', collectionId);
+    } else if (searchTerms) {
       url.searchParams.append('query', searchTerms);
     }
+
     url.searchParams.append('orientation', 'landscape'); // Ensure landscape images
 
     const options = {
@@ -263,7 +271,7 @@ async function processAndSetWallpaper(photoData) {
 }
 
 // Function to handle the actual wallpaper update process
-async function updateWallpaper(apiKey, searchTerms) {
+async function updateWallpaper(apiKey, { searchTerms, collectionId }) {
   if (!apiKey) {
     console.warn('API Key is missing for wallpaper update. Skipping.');
     if (mainWindow && !mainWindow.isDestroyed()) {
@@ -273,7 +281,7 @@ async function updateWallpaper(apiKey, searchTerms) {
   }
 
   try {
-    const imageData = await fetchUnsplashImage(apiKey, searchTerms);
+    const imageData = await fetchUnsplashImage(apiKey, { searchTerms, collectionId });
     console.log(`Fetched Unsplash image (ID: ${imageData.id})`);
 
     // Transform the raw API data into our CurrentPhoto shape
@@ -308,7 +316,7 @@ function stopWallpaperScheduler() {
 }
 
 // Function to start the wallpaper scheduler
-function startWallpaperScheduler(frequency, apiKey, searchTerms) {
+function startWallpaperScheduler(frequency, apiKey, { searchTerms, collectionId }) {
   stopWallpaperScheduler(); // Stop any existing scheduler first
 
   let intervalMs = 0;
@@ -329,7 +337,7 @@ function startWallpaperScheduler(frequency, apiKey, searchTerms) {
   }
 
   console.log(`Starting wallpaper scheduler: updating ${frequency}`);
-  wallpaperUpdateInterval = setInterval(() => updateWallpaper(apiKey, searchTerms), intervalMs);
+  wallpaperUpdateInterval = setInterval(() => updateWallpaper(apiKey, { searchTerms, collectionId }), intervalMs);
 }
 
 
@@ -366,6 +374,10 @@ function createWindow (initialSettings = {}) {
 }
 
 app.whenReady().then(async () => { // Made this async to await loadSettings
+  // Set the app to launch on startup.
+  // This is ignored in development, and only applies to the packaged version.
+  app.setLoginItemSettings({ openAtLogin: true });
+
   // Load settings on startup
   const loadedSettings = loadSettingsFromFile();
 
@@ -397,7 +409,10 @@ app.whenReady().then(async () => { // Made this async to await loadSettings
   if (loadedSettings.apiKey) {
     console.log('Setting loaded...');
     // Start scheduler if frequency is set
-    startWallpaperScheduler(loadedSettings.updateFrequency || UpdateFrequency.DAILY, loadedSettings.apiKey, loadedSettings.searchTerms);
+    startWallpaperScheduler(
+        loadedSettings.updateFrequency || UpdateFrequency.DAILY,
+        loadedSettings.apiKey,
+        { searchTerms: loadedSettings.searchTerms, collectionId: loadedSettings.collectionId, unsplashUsername: loadedSettings.unsplashUsername });
   }
 });
 
@@ -420,7 +435,7 @@ ipcMain.on('minimize-window', () => {
 
 ipcMain.handle('save-settings', async (event, settings) => {
   console.log('Settings received in main process:', settings);
-  const { apiKey, searchTerms, updateFrequency } = settings;
+  const { apiKey, searchTerms, updateFrequency, collectionId, unsplashUsername } = settings;
 
   // Save settings immediately
   await saveSettingsToFile(settings);
@@ -431,13 +446,16 @@ ipcMain.handle('save-settings', async (event, settings) => {
     return;
   }
 
-  startWallpaperScheduler(updateFrequency || UpdateFrequency.DAILY, apiKey, searchTerms);
+  startWallpaperScheduler(
+      updateFrequency || UpdateFrequency.DAILY,
+      apiKey,
+      { searchTerms, collectionId });
 });
 
 // Listener for a request to get the next image data without setting it
 ipcMain.handle('get-next-image', async (event, settings) => {
   console.log('Get next image data requested with settings:', settings);
-  const { apiKey, searchTerms } = settings;
+  const { apiKey, searchTerms, collectionId } = settings;
 
   if (!apiKey) {
     console.error('API Key is required to fetch the next Unsplash image.');
@@ -449,7 +467,7 @@ ipcMain.handle('get-next-image', async (event, settings) => {
   }
 
   try {
-    const imageData = await fetchUnsplashImage(apiKey, searchTerms);
+    const imageData = await fetchUnsplashImage(apiKey, { searchTerms, collectionId });
     // Important: We're NOT saving or setting the wallpaper here.
     // We are just returning the data to the renderer process.
     return {
