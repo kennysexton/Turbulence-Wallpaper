@@ -5,6 +5,7 @@ import {UpdateFrequency} from '../shared/enums.js';
 import Options from "./components/Options";
 import TitleBar from "./components/TitleBar";
 
+import {getRandomPhoto} from './Unsplash.js';
 import {ReactComponent as Dots} from "./icons/loading-dots.svg";
 
 function App() {
@@ -19,6 +20,33 @@ function App() {
 	const [loading, setLoading] = useState(false);
 
 	const [previewPhoto, setPreviewPhoto] = useState(null);
+
+	const fetchAndSetWallpaper = useCallback(async () => {
+		if (!apiKey) {
+			console.warn('API Key is missing. Skipping wallpaper update.');
+			return;
+		}
+		setLoading(true);
+		try {
+			const imageData = await getRandomPhoto(apiKey, {searchTerms, collectionId});
+			const newPhoto = {
+				id: imageData.id,
+				fullUrl: imageData.urls.full,
+				locationName: imageData.location?.name,
+				userName: imageData.user?.name,
+				userProfileUrl: imageData.user?.links?.html,
+				description: imageData.description,
+				htmlLink: imageData.links.html,
+			};
+			await window.api.setWallpaper(newPhoto);
+			setCurrentPhoto(newPhoto);
+			setPreviewPhoto(null);
+		} catch (error) {
+			console.error('Error fetching and setting wallpaper:', error);
+		} finally {
+			setLoading(false);
+		}
+	}, [apiKey, searchTerms, collectionId]);
 
 	// Load initial settings and current photo from main process
 	useEffect(() => {
@@ -40,15 +68,17 @@ function App() {
 			const unsubscribeLoadingEnd = window.api.on('loading-end', () => {
 				setLoading(false);
 			});
+			const unsubscribeTriggerWallpaperUpdate = window.api.on('trigger-wallpaper-update', fetchAndSetWallpaper);
 			// Cleanup listeners on component unmount
 			return () => {
 				unsubscribeSettings();
 				unsubscribePhoto();
 				unsubscribeLoadingStart();
 				unsubscribeLoadingEnd();
+				unsubscribeTriggerWallpaperUpdate();
 			};
 		}
-	}, []);
+	}, [fetchAndSetWallpaper]);
 
 	// Function to save settings, passed to SettingsPage
 	const handleSaveSettings = useCallback((newSettings) => {
@@ -67,19 +97,28 @@ function App() {
 
 	// Function to fetch the next image for preview only
 	const handleNextImagePreview = useCallback(async () => {
-		if (window.api && window.api.getNextImage) {
-			if (!apiKey) {
-				alert('Please enter an Unsplash API Key first.');
-				return;
-			}
-			console.log('Fetching next image for preview...');
-			const newPhoto = await window.api.getNextImage({apiKey, searchTerms, collectionId});
-			if (newPhoto) {
-				setPreviewPhoto(newPhoto); // Store in the new preview state
-				setCurrentPhoto(null); // Clear the current photo so the preview is shown
-			}
-		} else {
-			console.error('API not available to fetch next image preview.');
+		if (!apiKey) {
+			alert('Please enter an Unsplash API Key first.');
+			return;
+		}
+		setLoading(true);
+		try {
+			const imageData = await getRandomPhoto(apiKey, {searchTerms, collectionId});
+			const newPhoto = {
+				id: imageData.id,
+				fullUrl: imageData.urls.full,
+				locationName: imageData.location?.name,
+				userName: imageData.user?.name,
+				userProfileUrl: imageData.user?.links?.html,
+				description: imageData.description,
+				htmlLink: imageData.links.html,
+			};
+			setPreviewPhoto(newPhoto);
+			setCurrentPhoto(null);
+		} catch (error) {
+			console.error('Error fetching next image preview:', error);
+		} finally {
+			setLoading(false);
 		}
 	}, [apiKey, searchTerms, collectionId]);
 

@@ -22,3 +22,31 @@ export async function getCollections(username, apiKey) {
 		throw error;
 	}
 }
+
+export async function getRandomPhoto(apiKey, { searchTerms, collectionId }) {
+	const url = new URL(`${BASE_URL}/photos/random`);
+
+	if (collectionId) {
+		url.searchParams.append('collections', collectionId);
+	} else if (searchTerms) {
+		url.searchParams.append('query', searchTerms);
+	}
+
+	url.searchParams.append('orientation', 'landscape');
+
+	const headers = {
+		'Authorization': `Client-ID ${apiKey}`,
+		'Content-Type': 'application/json',
+	};
+
+	try {
+		const response = await fetch(url.toString(), { headers });
+		if (!response.ok) {
+			throw new Error(`Unsplash API error: ${response.statusText}`);
+		}
+		return await response.json();
+	} catch (error) {
+		console.error('Failed to fetch random photo:', error);
+		throw error;
+	}
+}
