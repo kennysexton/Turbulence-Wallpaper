@@ -21,7 +21,7 @@ const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
 } else {
-  app.on('second-instance', (event, commandLine, workingDirectory) => {
+  app.on('second-instance', () => {
     // Someone tried to run a second instance, we should focus our window.
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
@@ -35,7 +35,9 @@ if (!gotTheLock) {
  * @typedef {object} UserSettings
  * @property {string} [apiKey]
  * @property {string} [searchTerms]
+ * @property {string} [collectionId]
  * @property {string} [updateFrequency]
+ * @property {string} [unsplashUsername]
  */
 
 /**
@@ -91,45 +93,6 @@ function loadCurrentPhotoFromFile() {
     console.error('Failed to load current photo data:', error.message);
   }
   return null; // Return null if no photo data or error
-}
-
-// Function to fetch a random image from Unsplash
-async function fetchUnsplashImage(apiKey, searchTerms) {
-  return new Promise((resolve, reject) => {
-    const url = new URL('https://api.unsplash.com/photos/random');
-    if (searchTerms) {
-      url.searchParams.append('query', searchTerms);
-    }
-    url.searchParams.append('orientation', 'landscape'); // Ensure landscape images
-
-    const options = {
-      headers: {
-        Authorization: `Client-ID ${apiKey}`
-      }
-    };
-
-    https.get(url.toString(), options, (res) => {
-      let data = '';
-      res.on('data', (chunk) => {
-        data += chunk;
-      });
-      res.on('end', () => {
-        if (res.statusCode === 200) {
-          try {
-            const imageData = JSON.parse(data);
-            resolve(imageData); // Resolve with the full image data object
-          } catch (e) {
-            reject(new Error('Failed to parse Unsplash API response: ' + e.message));
-          }
-        } else {
-          reject(new Error(`Unsplash API error: ${res.statusCode} - ${data}`));
-          }
-        }
-      ).on('error', (err) => {
-        reject(new Error('Failed to connect to Unsplash API: ' + err.message));
-      });
-    });
-  });
 }
 
 // Function to download an image
@@ -262,41 +225,6 @@ async function processAndSetWallpaper(photoData) {
   }
 }
 
-// Function to handle the actual wallpaper update process
-async function updateWallpaper(apiKey, searchTerms) {
-  if (!apiKey) {
-    console.warn('API Key is missing for wallpaper update. Skipping.');
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('load-current-photo', null);
-    }
-    return;
-  }
-
-  try {
-    const imageData = await fetchUnsplashImage(apiKey, searchTerms);
-    console.log(`Fetched Unsplash image (ID: ${imageData.id})`);
-
-    // Transform the raw API data into our CurrentPhoto shape
-    const currentPhoto = {
-      id: imageData.id,
-      fullUrl: imageData.urls.full,
-      locationName: imageData.location?.name,
-      userName: imageData.user?.name,
-      userProfileUrl: imageData.user?.links?.html,
-      description: imageData.description,
-      htmlLink: imageData.links.html,
-    };
-
-    await processAndSetWallpaper(currentPhoto);
-
-  } catch (error) {
-    console.error('Error during scheduled wallpaper update:', error.message);
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('load-current-photo', null);
-    }
-  }
-}
-
 const { UpdateFrequency } = require('../shared/enums.js');
 
 // Function to stop the existing scheduler
@@ -308,7 +236,7 @@ function stopWallpaperScheduler() {
 }
 
 // Function to start the wallpaper scheduler
-function startWallpaperScheduler(frequency, apiKey, searchTerms) {
+function startWallpaperScheduler(frequency) {
   stopWallpaperScheduler(); // Stop any existing scheduler first
 
   let intervalMs = 0;
@@ -329,14 +257,18 @@ function startWallpaperScheduler(frequency, apiKey, searchTerms) {
   }
 
   console.log(`Starting wallpaper scheduler: updating ${frequency}`);
-  wallpaperUpdateInterval = setInterval(() => updateWallpaper(apiKey, searchTerms), intervalMs);
+  wallpaperUpdateInterval = setInterval(() => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('trigger-wallpaper-update');
+    }
+  }, intervalMs);
 }
 
 
 function createWindow (initialSettings = {}) {
   mainWindow = new BrowserWindow({
-    width: 680,
-    height: 400,
+    width: 768,
+    height: 432,
     frame: false,
     icon: path.join(__dirname, '../../build/icon.png'),
     webPreferences: {
@@ -366,6 +298,10 @@ function createWindow (initialSettings = {}) {
 }
 
 app.whenReady().then(async () => { // Made this async to await loadSettings
+  // Set the app to launch on startup.
+  // This is ignored in development, and only applies to the packaged version.
+  app.setLoginItemSettings({ openAtLogin: true });
+
   // Load settings on startup
   const loadedSettings = loadSettingsFromFile();
 
@@ -397,7 +333,7 @@ app.whenReady().then(async () => { // Made this async to await loadSettings
   if (loadedSettings.apiKey) {
     console.log('Setting loaded...');
     // Start scheduler if frequency is set
-    startWallpaperScheduler(loadedSettings.updateFrequency || UpdateFrequency.DAILY, loadedSettings.apiKey, loadedSettings.searchTerms);
+    startWallpaperScheduler(loadedSettings.updateFrequency || UpdateFrequency.DAILY);
   }
 });
 
@@ -420,7 +356,7 @@ ipcMain.on('minimize-window', () => {
 
 ipcMain.handle('save-settings', async (event, settings) => {
   console.log('Settings received in main process:', settings);
-  const { apiKey, searchTerms, updateFrequency } = settings;
+  const { apiKey, updateFrequency } = settings;
 
   // Save settings immediately
   await saveSettingsToFile(settings);
@@ -431,44 +367,7 @@ ipcMain.handle('save-settings', async (event, settings) => {
     return;
   }
 
-  startWallpaperScheduler(updateFrequency || UpdateFrequency.DAILY, apiKey, searchTerms);
-});
-
-// Listener for a request to get the next image data without setting it
-ipcMain.handle('get-next-image', async (event, settings) => {
-  console.log('Get next image data requested with settings:', settings);
-  const { apiKey, searchTerms } = settings;
-
-  if (!apiKey) {
-    console.error('API Key is required to fetch the next Unsplash image.');
-    return null; // Return null or an error object
-  }
-
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('loading-start');
-  }
-
-  try {
-    const imageData = await fetchUnsplashImage(apiKey, searchTerms);
-    // Important: We're NOT saving or setting the wallpaper here.
-    // We are just returning the data to the renderer process.
-    return {
-      id: imageData.id,
-      fullUrl: imageData.urls.full,
-      locationName: imageData.location?.name,
-      userName: imageData.user?.name,
-      userProfileUrl: imageData.user?.links?.html,
-      description: imageData.description,
-      htmlLink: imageData.links.html,
-    };
-  } catch (error) {
-    console.error('Error fetching next image data:', error.message);
-    return null; // Return null on error
-  } finally {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('loading-end');
-    }
-  }
+  startWallpaperScheduler(updateFrequency || UpdateFrequency.DAILY);
 });
 
 // Listener to explicitly set a wallpaper and save the data
