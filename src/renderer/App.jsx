@@ -18,6 +18,7 @@ function App() {
 	const [currentPhoto, setCurrentPhoto] = useState(null);
 	const [hoveredActionName, setHoveredActionName] = useState(null);
 	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState(null);
 
 	const [previewPhoto, setPreviewPhoto] = useState(null);
 
@@ -27,6 +28,7 @@ function App() {
 			return;
 		}
 		setLoading(true);
+		setError(null);
 		try {
 			const imageData = await getRandomPhoto(apiKey, {searchTerms, collectionId});
 			const newPhoto = {
@@ -43,6 +45,7 @@ function App() {
 			setPreviewPhoto(null);
 		} catch (error) {
 			console.error('Error fetching and setting wallpaper:', error);
+			setError(error.message);
 		} finally {
 			setLoading(false);
 		}
@@ -102,6 +105,7 @@ function App() {
 			return;
 		}
 		setLoading(true);
+		setError(null);
 		try {
 			const imageData = await getRandomPhoto(apiKey, {searchTerms, collectionId});
 			const newPhoto = {
@@ -117,6 +121,7 @@ function App() {
 			setCurrentPhoto(null);
 		} catch (error) {
 			console.error('Error fetching next image preview:', error);
+			setError(error.message);
 		} finally {
 			setLoading(false);
 		}
@@ -146,13 +151,13 @@ function App() {
 	return (
 		<div className="h-full flex flex-col">
 			<TitleBar showSettings={showSettings} />
-			<main className="relative flex-grow">
+			<main className="relative grow">
 				{loading && (
 					<div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
 						<Dots className="w-10 h-10 text-white animate-pulse" />
 					</div>
 				)}
-				<Preview apiKey={apiKey} searchTerms={searchTerms} currentPhoto={previewPhoto || currentPhoto}/>
+				<Preview apiKey={apiKey} searchTerms={searchTerms} currentPhoto={previewPhoto || currentPhoto} error={error}/>
 
 				<Options
 					onSetWallpaper={handleSetWallpaper}

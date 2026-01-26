@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {UpdateFrequency} from '../shared/enums.js';
 import {ReactComponent as Close} from './icons/close.svg';
 import {getCollections} from './Unsplash.js';
+import {useDebounce} from './hooks/useDebounce.js';
 
 const SETTINGS_PAGES = ['Frequency', 'Collection', 'API'];
 
@@ -25,6 +26,23 @@ function SettingsPage({
 	const [collectionsError, setCollectionsError] = useState(null);
 	const [noCollectionsFound, setNoCollectionsFound] = useState(false);
 
+	const debouncedApiKey = useDebounce(apiKey, 500);
+	const debouncedSearchTerms = useDebounce(searchTerms, 500);
+	const debouncedCollectionId = useDebounce(collectionId, 500);
+	const debouncedUpdateFrequency = useDebounce(updateFrequency, 500);
+	const debouncedUnsplashUsername = useDebounce(unsplashUsername, 500);
+
+	useEffect(() => {
+		const settings = {
+			apiKey: debouncedApiKey,
+			searchTerms: searchType === 'query' ? debouncedSearchTerms : '',
+			collectionId: searchType === 'collection' ? debouncedCollectionId : '',
+			updateFrequency: debouncedUpdateFrequency,
+			unsplashUsername: debouncedUnsplashUsername,
+		};
+		onSave(settings);
+	}, [debouncedApiKey, debouncedSearchTerms, debouncedCollectionId, debouncedUpdateFrequency, debouncedUnsplashUsername, onSave, searchType]);
+
 	useEffect(() => {
 		if (searchType === 'collection') {
 			setSearchTerms('');
@@ -32,18 +50,6 @@ function SettingsPage({
 			setCollectionId('');
 		}
 	}, [searchType, setSearchTerms, setCollectionId]);
-
-	const handleSaveSettings = () => {
-		const settings = {
-			apiKey,
-			searchTerms: searchType === 'query' ? searchTerms : '',
-			collectionId: searchType === 'collection' ? collectionId : '',
-			updateFrequency,
-			unsplashUsername,
-		};
-		onSave(settings);
-		if (onClose) onClose();
-	};
 
 	const fetchCollections = async () => {
 		if (!unsplashUsername) {
@@ -98,7 +104,7 @@ function SettingsPage({
 									checked={searchType === 'collection'}
 									onChange={() => setSearchType(searchType === 'query' ? 'collection' : 'query')}
 								/>
-								<div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+								<div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-slate-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-slate-600"></div>
 							</label>
 							<span className="ml-3 text-sm font-medium text-gray-900">Collection</span>
 						</div>
@@ -129,7 +135,7 @@ function SettingsPage({
 								/>
 								<button
 									onClick={fetchCollections}
-									className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-sm focus:outline-hidden focus:shadow-outline mb-4"
+									className="bg-slate-800 hover:bg-slate-900 text-white font-bold py-1.5 px-3 rounded-sm focus:outline-hidden focus:shadow-outline mb-4 text-sm"
 									disabled={collectionsLoading}
 								>
 									{collectionsLoading ? 'Fetching...' : 'Fetch Collections'}
@@ -188,15 +194,15 @@ function SettingsPage({
 
 			{/* Page Navigation */}
 			<div className="mb-8 border-b border-gray-200">
-				<nav className="-mb-px flex space-x-6" aria-label="Tabs">
+				<nav className="-mb-px flex space-x-2" aria-label="Tabs">
 					{SETTINGS_PAGES.map((page) => (
 						<button
 							key={page}
 							onClick={() => setActivePage(page)}
-							className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm ${
+							className={`whitespace-nowrap pb-3 px-3 border-b-2 font-medium text-sm ${
 								activePage === page
-									? 'border-blue-500 text-blue-600'
-									: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+									? 'border-slate-800 text-slate-900'
+									: 'border-transparent text-gray-500 hover:text-slate-800 hover:border-gray-300'
 							}`}
 						>
 							{page}
@@ -208,17 +214,6 @@ function SettingsPage({
 			{/* Page Content */}
 			<div className="min-h-[160px]">
 				{renderActivePage()}
-			</div>
-
-
-			{/* Save Button */}
-			<div className="flex items-center justify-between mt-6">
-				<button
-					onClick={handleSaveSettings}
-					className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-sm focus:outline-hidden focus:shadow-outline"
-				>
-					Save Settings
-				</button>
 			</div>
 		</div>
 	);

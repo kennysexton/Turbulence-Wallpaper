@@ -1,8 +1,7 @@
 import React from 'react';
 
-function Preview({ currentPhoto }) {
+function Preview({ currentPhoto, error }) {
   const appName = import.meta.env.VITE_APP_NAME; // Get appName directly from Vite env
-  const unsplashReferralLink = `https://unsplash.com/?utm_source=${appName}&utm_medium=referral`;
 
   const handleOpenLink = (url) => {
     if (window.api && window.api.openExternal) {
@@ -33,7 +32,7 @@ function Preview({ currentPhoto }) {
 								) : ''}
 								{' '} on{' '}
 								<a
-                  onClick={() => handleOpenLink(unsplashReferralLink)}
+                  onClick={() => handleOpenLink(currentPhoto.htmlLink)}
                   className="hover:underline cursor-pointer"
                 >
 									Unsplash
@@ -46,9 +45,13 @@ function Preview({ currentPhoto }) {
 					</div>
 				) : (
         <div className="w-full h-full flex items-center justify-center bg-gray-700">
-          <p className="text-white">
-            No wallpaper information available. Please set your API key in the settings.
-          </p>
+					{error ? (
+						<p className="text-red-500 bg-red-100 p-4 rounded-md">{error}</p>
+					) : (
+						<p className="text-white">
+							No wallpaper information available. Please set your API key in the settings.
+						</p>
+					)}
         </div>
       )}
     </div>

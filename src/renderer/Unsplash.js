@@ -19,7 +19,7 @@ export async function getCollections(username, apiKey) {
 		return await response.json();
 	} catch (error) {
 		console.error('Failed to fetch collections:', error);
-		throw error;
+		throw new Error('Could not connect to Unsplash. Please check your internet connection.');
 	}
 }
 
@@ -47,6 +47,6 @@ export async function getRandomPhoto(apiKey, { searchTerms, collectionId }) {
 		return await response.json();
 	} catch (error) {
 		console.error('Failed to fetch random photo:', error);
-		throw error;
+		throw new Error('Could not connect to Unsplash. Please check your internet connection.');
 	}
 }

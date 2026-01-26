@@ -21,7 +21,7 @@ const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
 } else {
-  app.on('second-instance', (event, commandLine, workingDirectory) => {
+  app.on('second-instance', () => {
     // Someone tried to run a second instance, we should focus our window.
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
@@ -267,8 +267,8 @@ function startWallpaperScheduler(frequency) {
 
 function createWindow (initialSettings = {}) {
   mainWindow = new BrowserWindow({
-    width: 680,
-    height: 400,
+    width: 768,
+    height: 432,
     frame: false,
     icon: path.join(__dirname, '../../build/icon.png'),
     webPreferences: {
